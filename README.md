@@ -8,8 +8,8 @@ This page contains some reminders about the followed guidelines.
 - [ ] PIC32 communication
 
 ### MTL side
-- [ ] Basic MTL Qsys project
-- [ ] Basic software to launch
+- [x] Basic MTL Qsys project
+- [x] Basic software to launch
 - [ ] PIC32 communication
 
 ### PIC32s side
