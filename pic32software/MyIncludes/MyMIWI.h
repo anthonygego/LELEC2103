@@ -10,9 +10,16 @@
 * Constants                                                                    *
 *******************************************************************************/
 
-#define myMIWI_Channel              25
+#define myMIWI_Channel              15
 #define myMIWI_EnableBroadcast      1
 #define myMIWI_DisableBroadcast     0
+
+typedef struct miwi_txrx_struct
+{
+	size_t   size;
+	BOOL     transfer_done;
+	BYTE     buffer[2048];
+} miwi_txrx_state;
 
 /*******************************************************************************
 * Functions Prototypes                                                         *
@@ -20,8 +27,8 @@
 
 void    MyMIWI_Init(void);
 void    MyMIWI_Start(void);
-BOOL    MyMIWI_RxMsg(char *theMsg);
-void    MyMIWI_TxMsg(BOOL enableBroadcast, char *theMsg);
+int     MyMIWI_Send(BOOL enableBroadcast, BYTE * data, size_t length);
+BOOL    MyMIWI_Reveice(BYTE * data, size_t * length);
 void    MyMIWI_Task(void);
 
 /*******************************************************************************

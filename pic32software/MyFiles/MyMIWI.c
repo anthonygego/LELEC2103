@@ -30,6 +30,19 @@
 
 #include "MyApp.h"
 
+/******************************************************************************/
+
+// Implementation of MSPI.c
+
+void SPIPut(BYTE v) { MySPI_PutC((unsigned int) v); }
+BYTE SPIGet(void)   { return ((BYTE) MySPI_GetC()); }
+
+/******************************************************************************/
+
+miwi_txrx_state miwi_state;
+
+/******************************************************************************/
+
 void MyMIWI_Init(void) {
 
     // Configure Pins for MRF24J40MB
@@ -166,9 +179,14 @@ void MyMIWI_Start(void) {
 }
 
 /******************************************************************************/
+union bin_int
+{
+    int integer;
+    BYTE byte[4];
+};
 
-BOOL MyMIWI_RxMsg(char *theMsg) {
-
+BOOL MyMIWI_RxData(BOOL* ack, int* position, BYTE *data, size_t* size)
+{
     int i;
 
     /*******************************************************************/
@@ -184,34 +202,17 @@ BOOL MyMIWI_RxMsg(char *theMsg) {
     // If a packet has been received, following code prints out some of
     // the information available in rxMessage.
     /*******************************************************************/
-    if( rxMessage.flags.bits.secEn )
-        ConsolePutROMString((ROM char *)"Secured ");
 
-    if( rxMessage.flags.bits.broadcast )
-        ConsolePutROMString((ROM char *)"Broadcast Packet with RSSI ");
-    else
-        ConsolePutROMString((ROM char *)"Unicast Packet with RSSI ");
+    *size = rxMessage.PayloadSize - 5;
+    *ack = (BOOL) rxMessage.Payload[0];
+    union bin_int u;
+    for(i=0; i<4; i++)
+        u.byte[i] = rxMessage.Payload[i+1];
 
-    PrintChar(rxMessage.PacketRSSI);
+    *position = u.integer;
 
-    if( rxMessage.flags.bits.srcPrsnt ) {
-        ConsolePutROMString((ROM char *)" from ");
-         if( rxMessage.flags.bits.altSrcAddr ) {
-            PrintChar(rxMessage.SourceAddress[1]);
-            PrintChar(rxMessage.SourceAddress[0]);
-         } else {
-            for(i = 0; i < MY_ADDRESS_LENGTH; i++)
-                PrintChar(rxMessage.SourceAddress[MY_ADDRESS_LENGTH-1-i]);
-         }
-    }
-
-    ConsolePutROMString((ROM char *)" : ");
-    for(i = 0; i < rxMessage.PayloadSize; i++) {
-        ConsolePut(rxMessage.Payload[i]);
-        *theMsg++ = rxMessage.Payload[i];
-    }
-    ConsolePutROMString((ROM char *)"\n");
-    *theMsg = '\0';
+    for(i = 5; i < rxMessage.PayloadSize; i++)
+        *data++ = rxMessage.Payload[i];
 
     /*******************************************************************/
     // Function MiApp_DiscardMessage is used to release the current
@@ -224,18 +225,22 @@ BOOL MyMIWI_RxMsg(char *theMsg) {
     return TRUE;
 }
 
-/******************************************************************************/
-
-void MyMIWI_TxMsg(BOOL enableBroadcast, char *theMsg)
+void MyMIWI_TxData(BOOL enableBroadcast,BOOL ack, int position, BYTE *data, size_t size)
 {
-    /*******************************************************************/
-    // First call MiApp_FlushTx to reset the Transmit buffer. Then fill
-    // the buffer one byte by one byte by calling function
-    // MiApp_WriteData
-    /*******************************************************************/
+    if(position > 2048)
+       return;
+
     MiApp_FlushTx();
-    while (*theMsg != '\0')
-        MiApp_WriteData(*theMsg++);
+    int i;
+    MiApp_WriteData((BYTE) ack);
+
+    union bin_int u;
+    u.integer = position;
+    for(i=0; i < 4; i++)
+        MiApp_WriteData(u.byte[i]);
+
+    for(i=0; i < size; i++)
+        MiApp_WriteData((BYTE) data[i]);
 
     if (enableBroadcast) {
 
@@ -267,26 +272,114 @@ void MyMIWI_TxMsg(BOOL enableBroadcast, char *theMsg)
         if( MiApp_UnicastConnection(0, FALSE) == FALSE )
             Printf("\r\nUnicast Failed\r\n");
     }
+
+}
+
+BOOL  MyMIWI_Reveice(BYTE * data, size_t * length)
+{
+    if(!miwi_state.transfer_done)
+        return FALSE;
+    else
+    {
+        miwi_state.transfer_done = FALSE;
+        *length = miwi_state.size;
+        memcpy(data, miwi_state.buffer,miwi_state.size);
+    }
+}
+
+int MyMIWI_Send(BOOL enableBroadcast, BYTE * buf, size_t length)
+{
+   size_t  position;
+   BYTE    theData[64];
+   BOOL    readack;
+   int     readpos;
+   size_t  read_size;
+   int     timer = 0;
+   BOOL    result;
+
+   if(length > 2048)
+       return -1;
+
+   position = 0;
+   while(position < length)
+   {
+       size_t readsize = min(length-position, 30);
+       MyMIWI_TxData(enableBroadcast, FALSE, position, buf, readsize);
+
+       result = MyMIWI_RxData(&readack,&readpos, theData, &read_size);
+       int retries = 0;
+       while ((!result || !readack || (readpos != position)) && retries < 5)
+       {
+           if(timer == 100000)
+           {
+               MyMIWI_TxData(enableBroadcast, FALSE, position, buf, readsize);
+               retries++;
+               timer = 0;
+           }
+           else
+               timer++;
+
+           result = MyMIWI_RxData(&readack,&readpos, theData, &read_size);
+       }
+       if(retries == 5) break;
+
+       buf = buf + readsize;
+       position = position + readsize;
+   }
+
+   MyMIWI_TxData(enableBroadcast, FALSE, position, "", 0);
+
+   result = MyMIWI_RxData(&readack,&readpos, theData, &read_size);
+   int retries = 0;
+   while ((!result || !readack || (readpos != position)) && retries < 5)
+   {
+       if(timer == 100000)
+       {
+           MyMIWI_TxData(enableBroadcast, FALSE, position, "", 0);
+           retries++;
+           timer = 0;
+       }
+       else
+           timer++;
+
+       result = MyMIWI_RxData(&readack,&readpos, theData, &read_size);
+   }
 }
 
 /******************************************************************************/
 
-// Implementation of MSPI.c
-
-void SPIPut(BYTE v) { MySPI_PutC((unsigned int) v); }
-BYTE SPIGet(void)   { return ((BYTE) MySPI_GetC()); }
-
-/******************************************************************************/
-
 void MyMIWI_Task(void) {
+    /* Management of data packets */
+    BOOL ack;
+    int position;
+    BYTE data[64];
+    size_t size;
+    BOOL result = MyMIWI_RxData(&ack, &position, data, &size);
+    if (result && !ack) {
+        MyMIWI_TxData(myMIWI_EnableBroadcast, TRUE, position, (BYTE*) "Ack MIWI", 9);
+        if(size == 0)
+        {
+            miwi_state.transfer_done = TRUE;
+            miwi_state.size = position;
+        }
+        else
+        {
+            miwi_state.transfer_done = FALSE;
+            int i;
+            for(i=0; i < size; i++)
+                miwi_state.buffer[position+i] = data[i];
+        }
+    }
 
-    char theData[64], theStr[128];
-
-    if (MyMIWI_RxMsg(theData)) {
-        sprintf(theStr, "Receive MIWI Msg '%s'\n>", theData);
-        MyConsole_SendMsg(theStr);
-        if (strcmp(theData, "Ack MIWI") != 0)
-            MyMIWI_TxMsg(myMIWI_EnableBroadcast, "Ack MIWI");
+    /* Management of messages */
+    char theStr[128];
+    BYTE msg[2048];
+    if(MyMIWI_Reveice(msg, &size))
+    {
+       sprintf(theStr, "Received data of size : %d \n>", miwi_state.size);
+       MyConsole_SendMsg(theStr);
+       MyConsole_SendMsg(msg);
+       MyConsole_SendMsg("\n>");
     }
 }
 

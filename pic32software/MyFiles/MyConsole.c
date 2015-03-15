@@ -26,6 +26,7 @@
 #define  MyCONSOLE
 
 #include "MyApp.h"
+#include "mpack.h"
 
 void MyConsole_Init(void)
 {
@@ -88,6 +89,40 @@ void MyConsole_Task(void)
 
         MyCyclone_Send("Message from PIC32 !!!", 23, 0);
 
+    } else if (strcmp(theCmd, "MyMPack") == 0 ) {
+
+        // encode to memory buffer
+        char buffer[256];
+        mpack_writer_t writer;
+        mpack_writer_init_buffer(&writer, buffer, sizeof(buffer));
+
+        // write the example on the msgpack homepage
+        mpack_start_map(&writer, 2);
+        mpack_write_cstr(&writer, "compact");
+        mpack_write_bool(&writer, TRUE);
+        mpack_write_cstr(&writer, "schema");
+        mpack_write_uint(&writer, 42);
+        mpack_finish_map(&writer);
+
+        // clean up
+        size_t count = mpack_writer_buffer_used(&writer);
+
+        // parse a data buffer into a node tree
+        mpack_tree_t tree;
+        mpack_tree_init(&tree, buffer, count);
+        mpack_node_t* root = mpack_tree_root(&tree);
+
+        // extract the example data on the msgpack homepage
+        BOOL compact = mpack_node_bool(mpack_node_map_cstr(root, "compact"));
+        int schema = mpack_node_i32(mpack_node_map_cstr(root, "schema"));
+
+        // clean up and check for errors
+        if (mpack_tree_destroy(&tree) != mpack_ok)
+            return;
+
+        sprintf(theStr, "Read value : %d - %d\n>", compact, schema);
+        MyConsole_SendMsg(theStr);
+
     } else if (strcmp(theCmd, "MyCAN") == 0) {
 
         MyCAN_TxMsg(0x200, "0123456");
@@ -95,12 +130,12 @@ void MyConsole_Task(void)
 
     } else if (strcmp(theCmd, "MyMIWI-B") == 0) {
 
-        MyMIWI_TxMsg(myMIWI_EnableBroadcast, "0123456");
+        MyMIWI_Send(myMIWI_EnableBroadcast, "0123456", 8);
         MyConsole_SendMsg("Send MIWI Broadcast Msg '0123456'\n>");
 
     } else if (strcmp(theCmd, "MyMIWI-U") == 0) {
 
-        MyMIWI_TxMsg(myMIWI_DisableBroadcast, "0123456");
+        MyMIWI_Send(myMIWI_DisableBroadcast, "0123456", 8);
         MyConsole_SendMsg("Send MIWI Unicast Msg '0123456'\n>");
 
     } else if (strcmp(theCmd, "MyPing") == 0) {
