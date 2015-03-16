@@ -87,7 +87,23 @@ void MyConsole_Task(void)
 
     } else if (strcmp(theCmd, "MyCyclone") == 0) {
 
-        MyCyclone_Send("Message from PIC32 !!!", 23, 0);
+        // encode to memory buffer
+        char buffer[256];
+        mpack_writer_t writer;
+        mpack_writer_init_buffer(&writer, buffer, sizeof(buffer));
+
+        // write the example on the msgpack homepage
+        mpack_start_map(&writer, 2);
+        mpack_write_cstr(&writer, "compact");
+        mpack_write_bool(&writer, TRUE);
+        mpack_write_cstr(&writer, "schema");
+        mpack_write_uint(&writer, 42);
+        mpack_finish_map(&writer);
+
+        // clean up
+        size_t count = mpack_writer_buffer_used(&writer);
+
+        MyCyclone_Send(buffer, count, 1);
 
     } else if (strcmp(theCmd, "MyMPack") == 0 ) {
 

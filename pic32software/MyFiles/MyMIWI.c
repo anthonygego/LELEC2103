@@ -372,15 +372,10 @@ void MyMIWI_Task(void) {
     }
 
     /* Management of messages */
-    char theStr[128];
     BYTE msg[2048];
     if(MyMIWI_Reveice(msg, &size))
-    {
-       sprintf(theStr, "Received data of size : %d \n>", miwi_state.size);
-       MyConsole_SendMsg(theStr);
-       MyConsole_SendMsg(msg);
-       MyConsole_SendMsg("\n>");
-    }
+       MyCyclone_Send(msg, size, 1);
+
 }
 
 /******************************************************************************/

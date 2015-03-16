@@ -35,7 +35,7 @@ typedef struct pic32_txrx_struct
 
 void            MyCyclone_Init(void);
 void            MyCyclone_Send(BYTE * data, size_t length, BOOL type);
-BOOL            MyCyclone_Receive(BYTE ** buffer, size_t * length, BOOL * type);
+BOOL            MyCyclone_Receive(BYTE ** buffer, size_t * length, BOOL type);
 int             MyCyclone_SendFile(char * filename);
 void            MyCyclone_Task(void);
 

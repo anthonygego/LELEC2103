@@ -11,6 +11,7 @@
 
 #include "MyApp.h"
 #include "MDDFileSystem/FSIO.h"
+#include "mpack.h"
 
 pic32_txrx_state pic32_state;
 
@@ -101,7 +102,7 @@ void __ISR(_EXTERNAL_1_VECTOR, My_INT_EXTERNAL_1_IPL) _External1InterruptHandler
         pic32_state.cnt = 0;
         pic32_state.can_send = TRUE;
         pic32_state.transfer_done = FALSE;
-        pic32_state.type = status & CYCLONE_TYPE_MASK;
+        pic32_state.type = ((status & CYCLONE_TYPE_MASK) > 0);
         pic32_state.buffer = NULL;
         MyCyclone_SendAck();
     }
@@ -130,16 +131,15 @@ void __ISR(_EXTERNAL_1_VECTOR, My_INT_EXTERNAL_1_IPL) _External1InterruptHandler
     INTRestoreInterrupts(intStatus);
 }
 
-BOOL MyCyclone_Receive(BYTE ** buffer, size_t * length, BOOL * type)
+BOOL MyCyclone_Receive(BYTE ** buffer, size_t * length, BOOL type)
 {
-    if(!pic32_state.transfer_done)
+    if(!(pic32_state.transfer_done && pic32_state.type == type))
         return FALSE;
     else
     {
         pic32_state.transfer_done = 0;
         *buffer = pic32_state.buffer;
         *length = pic32_state.size;
-        *type = pic32_state.type;
         return TRUE;
     }
 }
@@ -265,14 +265,28 @@ int MyCyclone_SendFile(char *filename)
 void MyCyclone_Task(void)
 {
     BYTE * msg;
-    BOOL type;
     size_t len;
-    char theStr[100];
 
-    if(MyCyclone_Receive(&msg, &len, &type))
+    if(MyCyclone_Receive(&msg, &len, 1))
     {
-        sprintf(theStr, "Message%s of size %d : %s\n", type ? " (RPC)" : "", len, msg);
-        MyConsole_SendMsg(theStr);
-        MyConsole_SendMsg("MyTest ok \n>");
+        mpack_reader_t reader;
+        mpack_reader_init_buffer(&reader, msg, len);
+
+        int handler = mpack_expect_u8(&reader);
+        char inner_msg[len];
+        uint32_t inner_msg_len = mpack_expect_bin_buf(&reader, inner_msg, len);
+
+        mpack_reader_destroy(&reader);
+
+        switch(handler)
+        {
+            case CYCLONE_RPC_MIWI:
+                MyRPC_MIWI(inner_msg, inner_msg_len);
+                break;
+            case CYCLONE_RPC_FILE:
+                MyRPC_File(inner_msg, inner_msg_len);
+                break;
+        }
+        free(msg);
     }
 }
