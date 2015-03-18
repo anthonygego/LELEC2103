@@ -36,8 +36,20 @@ module mtlhardware(
 	I2C_SDAT,
 
 	//////////// 2x13 GPIO Header //////////
-	GPIO_2,
-	GPIO_2_IN,
+	PIC32_SDO1A,
+   PIC32_SDI1A,
+   PIC32_SCK1A,
+   PIC32_CS_FPGA_N,
+   PIC32_INT1,
+   PIC32_INT2,
+   PIC32_C1TX,
+   PIC32_C1RX,
+   PIC32_SCL3A,
+   PIC32_SDA3A,
+   PIC32_RST_FPGA_N,
+   PIC32_GPIO_211,
+   PIC32_GPIO_212,
+	PIC32_GPIO_2_IN,
 
 	//////////// GPIO_1, GPIO_1 connect to MTL - Multi-Touch LCD Panel //////////
 	MTL_B,
@@ -91,8 +103,22 @@ output		          		I2C_SCLK;
 inout 		          		I2C_SDAT;
 
 //////////// 2x13 GPIO Header //////////
-inout 		    [12:0]		GPIO_2;
-input 		     [2:0]		GPIO_2_IN;
+input                       PIC32_SDO1A;
+output                      PIC32_SDI1A;
+input                       PIC32_SCK1A;
+input                       PIC32_CS_FPGA_N;
+output                      PIC32_INT1;
+input                       PIC32_INT2;
+
+input                       PIC32_C1TX;
+output                      PIC32_C1RX;
+inout                       PIC32_SCL3A;
+inout                       PIC32_SDA3A;
+input                       PIC32_RST_FPGA_N;
+
+inout                       PIC32_GPIO_211;
+inout                       PIC32_GPIO_212;
+input            [2:0]      PIC32_GPIO_2_IN;
 
 //////////// GPIO_1, GPIO_1 connect to MTL - Multi-Touch LCD Panel //////////
 output		     [7:0]		MTL_B;
@@ -133,9 +159,12 @@ vga_pll vga_pll_inst(
 //  Structural coding
 //=======================================================
 
+wire SDI1A;
+assign PIC32_SDI1A = PIC32_CS_FPGA_N ? 1'bz : SDI1A;
+
  mtlsopc u0 (
 	  .clk_clk                                 (CLOCK_50),
-	  .reset_reset_n                           (KEY[0]),
+	  .reset_reset_n                           (PIC32_RST_FPGA_N),
 	  
 	  
 	  .altpll_areset_conduit_export            (),
@@ -165,7 +194,14 @@ vga_pll vga_pll_inst(
 	  
 	  .multi_touch_I2C_SDA                     (MTL_TOUCH_I2C_SDA),
      .multi_touch_I2C_SCL                     (MTL_TOUCH_I2C_SCL),
-     .multi_touch_INT_n                       (MTL_TOUCH_INT_n)
+     .multi_touch_INT_n                       (MTL_TOUCH_INT_n),
+      
+     .pic32_MISO                              (SDI1A),
+     .pic32_MOSI                              (PIC32_SDO1A),
+     .pic32_SCK                               (PIC32_SCK1A),
+     .pic32_CS_N                              (PIC32_CS_FPGA_N),
+     .pic32_int2_export                       (PIC32_INT2),
+	  .pic32_int1_export                       (PIC32_INT1)
 	  
  );
 
