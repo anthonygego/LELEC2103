@@ -36,8 +36,22 @@ output logic        I2C_SCLK,
 inout  logic        I2C_SDAT,
 
 //////////// 2x13 GPIO Header //////////
-inout  logic [12:0] GPIO_2,
-input  logic [2:0]  GPIO_2_IN,
+input  logic        PIC32_SDO1A,
+output logic        PIC32_SDI1A,
+input  logic        PIC32_SCK1A,
+input  logic        PIC32_CS_FPGA_N,
+output logic        PIC32_INT1,
+input  logic        PIC32_INT2,
+ 
+input  logic        PIC32_C1TX,
+output logic        PIC32_C1RX,
+inout  logic        PIC32_SCL3A,
+inout  logic        PIC32_SDA3A,
+input  logic        PIC32_RST_FPGA_N,
+
+inout  logic        PIC32_GPIO_211,
+inout  logic        PIC32_GPIO_212,
+input  logic        PIC32_GPIO_2_IN,
     
 //////////////  LCD LT24 to GPIO1 ////////////////
 output logic        LT24_ADC_CS_N,
@@ -55,17 +69,22 @@ output logic        LT24_RS,
 output logic        LT24_LCD_ON
 );
 
+logic SDI1A;
+
+assign PIC32_SDI1A = PIC32_CS_FPGA_N ? 1'bz : SDI1A;
+assign LT24_LCD_ON = 1'b1;	 
+
 lt24sopc u0 (
         // CLK/RESET
         .clk_clk                      (CLOCK_50), 
-        .reset_reset_n                (KEY[0]),
+        .reset_reset_n                (PIC32_RST_FPGA_N),
           
-		  // PLL
+        // PLL
         .pll_areset_conduit_export    (),
         .pll_locked_conduit_export    (),
         .pll_phasedone_conduit_export (),
 		  
-		  // RAM
+        // RAM
         .pll_sdram_clk                (DRAM_CLK),
         .sdram_wire_addr              (DRAM_ADDR),
         .sdram_wire_ba                (DRAM_BA),
@@ -77,23 +96,29 @@ lt24sopc u0 (
         .sdram_wire_ras_n             (DRAM_RAS_N), 
         .sdram_wire_we_n              (DRAM_WE_N),
 		  
-		  // LCD
-		  .lcd_cs                       (LT24_CS_N), 
+        // LCD
+        .lcd_cs                       (LT24_CS_N), 
         .lcd_rs                       (LT24_RS),
         .lcd_rd                       (LT24_RD_N),
         .lcd_wr                       (LT24_WR_N),
         .lcd_data                     (LT24_D), 
         .lcd_reset_n_export           (LT24_RESET_N),
 		  
-		  // Touch panel
-		  .touch_MISO                   (LT24_ADC_DOUT),
+        // Touch panel
+        .touch_MISO                   (LT24_ADC_DOUT),
         .touch_MOSI                   (LT24_ADC_DIN),
         .touch_SCLK                   (LT24_ADC_DCLK),
         .touch_SS_n                   (LT24_ADC_CS_N),
         .touch_pen_irq_n_export       (LT24_ADC_PENIRQ_N),
-        .touch_busy_export            (LT24_ADC_BUSY)
+        .touch_busy_export            (LT24_ADC_BUSY),
+        
+        // PIC32
+        .pic32_MISO                   (SDI1A),
+        .pic32_MOSI                   (PIC32_SDO1A),
+        .pic32_SCK                    (PIC32_SCK1A),
+        .pic32_CS_N                   (PIC32_CS_FPGA_N),
+        .pic32_int2_export            (PIC32_INT2),
+        .pic32_int1_export            (PIC32_INT1)
     );
-
-assign LT24_LCD_ON = 1'b1;	 
 	 
 endmodule
