@@ -8,9 +8,11 @@
 #include "pic32.h"
 #include "mtc.h"
 
-#include "mpack.h"
 #include "console.h"
 #include "rpc.h"
+
+#include "mpack.h"
+#include "breakout.h"
 
 /* Definition of Task Stacks */
 #define     TASK_STACKSIZE       2048
@@ -25,15 +27,16 @@ OS_STK      console_task_stk     [TASK_STACKSIZE];
 int main(void)
 {
 	// Initialize peripherals
-	pic32_init();
-	mtc_info * mtc_handle = mtc_init(MULTI_TOUCH_BASE, MULTI_TOUCH_IRQ_INTERRUPT_CONTROLLER_ID, MULTI_TOUCH_IRQ);
+	game_state game;
+	game.pic32_handle = pic32_init(PIC32_BASE, PIC32_INT1_BASE, PIC32_INT2_BASE, PIC32_INT2_IRQ_INTERRUPT_CONTROLLER_ID, PIC32_INT2_IRQ);
+	game.mtc_handle = mtc_init(MULTI_TOUCH_BASE, MULTI_TOUCH_IRQ_INTERRUPT_CONTROLLER_ID, MULTI_TOUCH_IRQ);
 
 	// Welcome message
 	printf("Breakout console\n");
 
 	// Create RPC task
 	OSTaskCreateExt(rpc_task,
-				  NULL,
+				  (void *)&game,
 				  (void *)&rpc_task_stk[TASK_STACKSIZE-1],
 				  RPC_TASK_PRIORITY,
 				  RPC_TASK_PRIORITY,
@@ -44,7 +47,7 @@ int main(void)
 
 	// Create console task
 	OSTaskCreateExt(console_task,
-			      mtc_handle,
+			      (void *)&game,
 				  (void *)&console_task_stk[TASK_STACKSIZE-1],
 				  CONSOLE_TASK_PRIORITY,
 				  CONSOLE_TASK_PRIORITY,

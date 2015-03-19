@@ -193,6 +193,7 @@ BSP_ROOT_DIR := ../breakout_bsp/
 APP_INCLUDE_DIRS += drivers
 APP_INCLUDE_DIRS += mpack
 APP_INCLUDE_DIRS += tasks
+APP_INCLUDE_DIRS += util
 APP_LIBRARY_DIRS :=
 APP_LIBRARY_NAMES :=
 

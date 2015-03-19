@@ -7,11 +7,14 @@
 
 #include "pic32.h"
 #include "mtc.h"
-#include "mpack.h"
 #include "console.h"
+#include "mpack.h"
+#include "breakout.h"
 
 void console_task(void* pdata)
 {
+	game_state * game = (game_state *) pdata;
+
 	while(1)
 	{
 		printf(">");
@@ -41,7 +44,7 @@ void console_task(void* pdata)
 			size_t count = mpack_writer_buffer_used(&writer);
 			mpack_writer_destroy(&writer);
 
-			pic32_sendrpc(buffer, count, CYCLONE_RPC_MIWI);
+			pic32_sendrpc(game->pic32_handle, buffer, count, CYCLONE_RPC_MIWI);
 
 			printf("Message sent !\n\n");
 		}
@@ -51,8 +54,8 @@ void console_task(void* pdata)
 			char * msg;
 			size_t len;
 
-			pic32_sendrpc("test.txt", 9, CYCLONE_RPC_FILE);
-			while(!pic32_receive(&msg, &len, 0));
+			pic32_sendrpc(game->pic32_handle, "test.txt", 9, CYCLONE_RPC_FILE);
+			while(!pic32_receive(game->pic32_handle, &msg, &len, 0));
 
 			fwrite(msg,1,len,stdout);
 			printf("\n");
@@ -62,8 +65,11 @@ void console_task(void* pdata)
 			alt_u8 event, touchnum;
 			int x1,x2,y1,y2;
 
-			if(mtc_get_status(pdata, &event, &touchnum, &x1, &y1, &x2, &y2))
-				printf("x1: %3d, y1: %3d\nx2: %3d, y2: %3d\nTouch num : %d\nEvent : 0x%X\n", x1, y1, x2, y2, touchnum, event);
+			if(mtc_get_status(game->mtc_handle, &event, &touchnum, &x1, &y1, &x2, &y2))
+				if(touchnum == 2)
+					printf("x1: %3d, y1: %3d\nx2: %3d, y2: %3d\nTouch num : %d\nEvent : 0x%X\n", x1, y1, x2, y2, touchnum, event);
+				else
+					printf("x1: %3d, y1: %3d\nTouch num : %d\nEvent : 0x%X\n", x1, y1, touchnum, event);
 			else
 				printf("No new point\n");
 		}

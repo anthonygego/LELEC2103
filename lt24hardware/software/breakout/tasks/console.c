@@ -6,11 +6,14 @@
 #include <alt_types.h>
 
 #include "pic32.h"
-#include "mpack.h"
 #include "console.h"
+#include "mpack.h"
+#include "breakout.h"
 
 void console_task(void* pdata)
 {
+	game_state * game = (game_state *) pdata;
+
 	while(1)
 	{
 		printf(">");
@@ -40,7 +43,7 @@ void console_task(void* pdata)
 			size_t count = mpack_writer_buffer_used(&writer);
 			mpack_writer_destroy(&writer);
 
-			pic32_sendrpc(buffer, count, CYCLONE_RPC_MIWI);
+			pic32_sendrpc(game->pic32_handle, buffer, count, CYCLONE_RPC_MIWI);
 
 			printf("Message sent !\n\n");
 		}
@@ -50,8 +53,8 @@ void console_task(void* pdata)
 			char * msg;
 			size_t len;
 
-			pic32_sendrpc("test.txt", 9, CYCLONE_RPC_FILE);
-			while(!pic32_receive(&msg, &len, 0));
+			pic32_sendrpc(game->pic32_handle, "test.txt", 9, CYCLONE_RPC_FILE);
+			while(!pic32_receive(game->pic32_handle, &msg, &len, 0));
 
 			fwrite(msg,1,len,stdout);
 			printf("\n");
