@@ -6,6 +6,7 @@
 #include <alt_types.h>
 
 #include "pic32.h"
+#include "mtc.h"
 #include "mpack.h"
 #include "console.h"
 
@@ -55,6 +56,16 @@ void console_task(void* pdata)
 
 			fwrite(msg,1,len,stdout);
 			printf("\n");
+		}
+		else if(!strncmp(command, "MyMultiTouch", 12))
+		{
+			alt_u8 event, touchnum;
+			int x1,x2,y1,y2;
+
+			if(mtc_get_status(pdata, &event, &touchnum, &x1, &y1, &x2, &y2))
+				printf("x1: %3d, y1: %3d\nx2: %3d, y2: %3d\nTouch num : %d\nEvent : 0x%X\n", x1, y1, x2, y2, touchnum, event);
+			else
+				printf("No new point\n");
 		}
 		else
 			printf("Unknown Command\n");

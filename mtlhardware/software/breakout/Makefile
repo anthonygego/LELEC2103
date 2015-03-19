@@ -153,6 +153,8 @@ C_SRCS += mpack/mpack-writer.c
 C_SRCS += drivers/pic32.c
 C_SRCS += tasks/console.c
 C_SRCS += tasks/rpc.c
+C_SRCS += drivers/mtc.c
+C_SRCS += util/queue.c
 CXX_SRCS :=
 ASM_SRCS :=
 
@@ -193,6 +195,7 @@ BSP_ROOT_DIR := ../breakout_bsp/
 APP_INCLUDE_DIRS += mpack
 APP_INCLUDE_DIRS += drivers
 APP_INCLUDE_DIRS += tasks
+APP_INCLUDE_DIRS += util
 APP_LIBRARY_DIRS :=
 APP_LIBRARY_NAMES :=
 

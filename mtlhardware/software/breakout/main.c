@@ -6,6 +6,8 @@
 #include <alt_types.h>
 
 #include "pic32.h"
+#include "mtc.h"
+
 #include "mpack.h"
 #include "console.h"
 #include "rpc.h"
@@ -24,6 +26,7 @@ int main(void)
 {
 	// Initialize peripherals
 	pic32_init();
+	mtc_info * mtc_handle = mtc_init(MULTI_TOUCH_BASE, MULTI_TOUCH_IRQ_INTERRUPT_CONTROLLER_ID, MULTI_TOUCH_IRQ);
 
 	// Welcome message
 	printf("Breakout console\n");
@@ -41,7 +44,7 @@ int main(void)
 
 	// Create console task
 	OSTaskCreateExt(console_task,
-				  NULL,
+			      mtc_handle,
 				  (void *)&console_task_stk[TASK_STACKSIZE-1],
 				  CONSOLE_TASK_PRIORITY,
 				  CONSOLE_TASK_PRIORITY,
