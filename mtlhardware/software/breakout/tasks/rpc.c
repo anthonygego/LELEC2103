@@ -39,6 +39,6 @@ void rpc_task(void* pdata)
 			free(msg);
 			printf("---\n");
 		}
-		OSTimeDlyHMSM(0, 0, 0, 20);
+		OSTimeDlyHMSM(0, 0, 0, 50);
 	}
 }

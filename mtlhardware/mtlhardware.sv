@@ -164,7 +164,7 @@ assign PIC32_SDI1A = PIC32_CS_FPGA_N ? 1'bz : SDI1A;
 
  mtlsopc u0 (
 	  .clk_clk                                 (CLOCK_50),
-	  .reset_reset_n                           (PIC32_RST_FPGA_N),
+	  .reset_reset_n                           (KEY[0]),
 	  
 	  
 	  .altpll_areset_conduit_export            (),
@@ -200,7 +200,7 @@ assign PIC32_SDI1A = PIC32_CS_FPGA_N ? 1'bz : SDI1A;
      .pic32_MOSI                              (PIC32_SDO1A),
      .pic32_SCK                               (PIC32_SCK1A),
      .pic32_CS_N                              (PIC32_CS_FPGA_N),
-     .pic32_int2_export                       (PIC32_INT2),
+     .pic32_int2_export                       (1'b0),//(PIC32_INT2),
 	  .pic32_int1_export                       (PIC32_INT1)
 	  
  );

@@ -15,6 +15,9 @@ void console_task(void* pdata)
 {
 	game_state * game = (game_state *) pdata;
 
+	// Welcome message
+	printf("Breakout console\n");
+
 	while(1)
 	{
 		printf(">");
