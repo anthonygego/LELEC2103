@@ -16,7 +16,7 @@
 #include "breakout.h"
 
 /* Definition of Task Stacks */
-#define     TASK_STACKSIZE       2048
+#define     TASK_STACKSIZE       2048//2048
 OS_STK      display_task_stk     [TASK_STACKSIZE];
 OS_STK      rpc_task_stk         [TASK_STACKSIZE];
 OS_STK      console_task_stk     [TASK_STACKSIZE];
@@ -44,6 +44,9 @@ int main(void)
 	// Initialize Frame Reader
 	game.freader_handle = freader_init(ALT_VIP_VFR_BASE, FREADER_MAX_WIDTH, FREADER_MAX_HEIGHT);
 	game.freader_sem = OSSemCreate(1);
+
+	// Initialize SGDMA
+	game.sgdma_handle = sgdma_init(SGDMA_NAME);
 
 	// Create Dislpay task
 	OSTaskCreateExt(display_task,

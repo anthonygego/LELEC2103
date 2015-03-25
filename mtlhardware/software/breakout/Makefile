@@ -157,6 +157,7 @@ C_SRCS += util/queue.c
 C_SRCS += main.c
 C_SRCS += drivers/freader.c
 C_SRCS += tasks/display.c
+C_SRCS += drivers/sgdma.c
 CXX_SRCS :=
 ASM_SRCS :=
 

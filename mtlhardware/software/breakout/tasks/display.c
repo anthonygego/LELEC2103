@@ -8,6 +8,8 @@
 #include "pic32.h"
 #include "freader.h"
 #include "mtc.h"
+#include "sgdma.h"
+
 #include "console.h"
 #include "mpack.h"
 #include "breakout.h"
@@ -25,15 +27,20 @@ void display_task(void* pdata)
 
 	printf("-- Gradient 1 done\n");
 
+	freader_select_frame(game->freader_handle, !game->freader_handle->current_frame);
+
 	for(j=0; j<800; j++)
 			for(i=0; i<480; i++)
 				game->freader_handle->frame_buffer[1].tab[i][j] = 0xff00ff - (i*255/480/2);
 
 	printf("-- Gradient 2 done\n");
 
+	printf("-- SGDMA Copy\n");
+	sgdma_memcpy(game->sgdma_handle, game->freader_handle->frame_buffer[1].lin, game->freader_handle->frame_buffer[0].lin, 800*240*sizeof(int));
+
 	while (1)
 	{
-		freader_select_frame(game->freader_handle, !game->freader_handle->current_frame);
 		OSTimeDlyHMSM(0, 0, 0, 500);
+		freader_select_frame(game->freader_handle, !game->freader_handle->current_frame);
 	}
 }
