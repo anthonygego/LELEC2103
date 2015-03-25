@@ -40,7 +40,7 @@
    {
       datum baseAddress
       {
-         value = "67113312";
+         value = "67113320";
          type = "String";
       }
    }
@@ -52,19 +52,19 @@
          type = "String";
       }
    }
-   element multi_touch.avalon_slave
-   {
-      datum baseAddress
-      {
-         value = "67112960";
-         type = "String";
-      }
-   }
    element alt_vip_vfr.avalon_slave
    {
       datum baseAddress
       {
          value = "67113088";
+         type = "String";
+      }
+   }
+   element multi_touch.avalon_slave
+   {
+      datum baseAddress
+      {
+         value = "67112960";
          type = "String";
       }
    }
@@ -74,6 +74,14 @@
       {
          value = "0";
          type = "int";
+      }
+   }
+   element sysid.control_slave
+   {
+      datum baseAddress
+      {
+         value = "67113312";
+         type = "String";
       }
    }
    element cpu
@@ -96,7 +104,7 @@
    {
       datum _sortIndex
       {
-         value = "11";
+         value = "12";
          type = "int";
       }
    }
@@ -140,19 +148,19 @@
          type = "String";
       }
    }
-   element sdram.s1
-   {
-      datum baseAddress
-      {
-         value = "33554432";
-         type = "String";
-      }
-   }
    element timer.s1
    {
       datum baseAddress
       {
          value = "67113216";
+         type = "String";
+      }
+   }
+   element sdram.s1
+   {
+      datum baseAddress
+      {
+         value = "33554432";
          type = "String";
       }
    }
@@ -177,6 +185,14 @@
       datum _sortIndex
       {
          value = "1";
+         type = "int";
+      }
+   }
+   element sysid
+   {
+      datum _sortIndex
+      {
+         value = "11";
          type = "int";
       }
    }
@@ -363,7 +379,7 @@
   <parameter name="tightlyCoupledInstructionMaster2AddrWidth" value="1" />
   <parameter name="tightlyCoupledInstructionMaster3AddrWidth" value="1" />
   <parameter name="instSlaveMapParam"><![CDATA[<address-map><slave name='sdram.s1' start='0x2000000' end='0x4000000' /><slave name='cpu.jtag_debug_module' start='0x4000800' end='0x4001000' /></address-map>]]></parameter>
-  <parameter name="dataSlaveMapParam"><![CDATA[<address-map><slave name='sdram.s1' start='0x2000000' end='0x4000000' /><slave name='cpu.jtag_debug_module' start='0x4000800' end='0x4001000' /><slave name='multi_touch.avalon_slave' start='0x4001000' end='0x4001080' /><slave name='alt_vip_vfr.avalon_slave' start='0x4001080' end='0x4001100' /><slave name='timer.s1' start='0x4001100' end='0x4001120' /><slave name='pic32_int2.s1' start='0x4001120' end='0x4001130' /><slave name='pic32_int1.s1' start='0x4001130' end='0x4001140' /><slave name='pic32.avalon_slave' start='0x4001140' end='0x4001150' /><slave name='altpll.pll_slave' start='0x4001150' end='0x4001160' /><slave name='jtag_uart.avalon_jtag_slave' start='0x4001160' end='0x4001168' /></address-map>]]></parameter>
+  <parameter name="dataSlaveMapParam"><![CDATA[<address-map><slave name='sdram.s1' start='0x2000000' end='0x4000000' /><slave name='cpu.jtag_debug_module' start='0x4000800' end='0x4001000' /><slave name='multi_touch.avalon_slave' start='0x4001000' end='0x4001080' /><slave name='alt_vip_vfr.avalon_slave' start='0x4001080' end='0x4001100' /><slave name='timer.s1' start='0x4001100' end='0x4001120' /><slave name='pic32_int2.s1' start='0x4001120' end='0x4001130' /><slave name='pic32_int1.s1' start='0x4001130' end='0x4001140' /><slave name='pic32.avalon_slave' start='0x4001140' end='0x4001150' /><slave name='altpll.pll_slave' start='0x4001150' end='0x4001160' /><slave name='sysid.control_slave' start='0x4001160' end='0x4001168' /><slave name='jtag_uart.avalon_jtag_slave' start='0x4001168' end='0x4001170' /></address-map>]]></parameter>
   <parameter name="clockFrequency" value="100000000" />
   <parameter name="deviceFamilyName" value="Cyclone IV E" />
   <parameter name="internalIrqMaskSystemInfo" value="31" />
@@ -692,6 +708,16 @@
   <parameter name="width" value="1" />
   <parameter name="clockRate" value="100000000" />
  </module>
+ <module
+   kind="altera_avalon_sysid_qsys"
+   version="13.1"
+   enabled="1"
+   name="sysid">
+  <parameter name="id" value="42" />
+  <parameter name="timestamp" value="0" />
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="100000000" />
+  <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone IV E" />
+ </module>
  <connection
    kind="avalon"
    version="13.1"
@@ -737,7 +763,7 @@
    start="cpu.data_master"
    end="jtag_uart.avalon_jtag_slave">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x04001160" />
+  <parameter name="baseAddress" value="0x04001168" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection kind="interrupt" version="13.1" start="cpu.d_irq" end="jtag_uart.irq">
@@ -905,6 +931,17 @@
    end="pic32_int2.irq">
   <parameter name="irqNumber" value="4" />
  </connection>
+ <connection kind="reset" version="13.1" start="clk_0.clk_reset" end="sysid.reset" />
+ <connection
+   kind="avalon"
+   version="13.1"
+   start="cpu.data_master"
+   end="sysid.control_slave">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x04001160" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection kind="clock" version="13.1" start="altpll.c0" end="sysid.clk" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="1" />
  <interconnectRequirement for="$system" name="qsys_mm.insertDefaultSlave" value="false" />
