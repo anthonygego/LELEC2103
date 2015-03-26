@@ -49,6 +49,10 @@ int main(void)
 	game.sgdma_handle = sgdma_init(SGDMA_NAME);
 	game.sgdma_sem = OSSemCreate(1);
 
+	// Initialize SGDMA
+	game.adxl345_handle = adxl345_init(ADXL345_BASE);
+	game.adxl345_sem = OSSemCreate(1);
+
 	// Create Dislpay task
 	OSTaskCreateExt(display_task,
 				  (void *)&game,

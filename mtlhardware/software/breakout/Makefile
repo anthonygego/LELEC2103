@@ -159,6 +159,7 @@ C_SRCS += drivers/freader.c
 C_SRCS += tasks/display.c
 C_SRCS += drivers/sgdma.c
 C_SRCS += util/sprite.c
+C_SRCS += drivers/adxl345.c
 CXX_SRCS :=
 ASM_SRCS :=
 

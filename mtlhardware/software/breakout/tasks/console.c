@@ -7,6 +7,7 @@
 
 #include "pic32.h"
 #include "mtc.h"
+#include "adxl345.h"
 #include "console.h"
 #include "mpack.h"
 #include "breakout.h"
@@ -75,6 +76,12 @@ void console_task(void* pdata)
 					printf("x1: %3d, y1: %3d\nTouch num : %d\nEvent : 0x%X\n", x1, y1, touchnum, event);
 			else
 				printf("No new point\n");
+		}
+		else if(!strncmp(command, "MyADXL", 6))
+		{
+			adxl345_coordinates c;
+			adxl345_read(game->adxl345_handle, ADXL345_DATAX0, (alt_u8 *)  &c, 6);
+			printf("X : %d - Y: %d, Z : %d\n", c.x, c.y, c.z);
 		}
 		else
 			printf("Unknown Command\n");

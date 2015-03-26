@@ -155,6 +155,29 @@ vga_pll vga_pll_inst(
 	.c0(video_clk),
 	.locked(reset_n));
 
+logic DataOut;
+logic I2C_SCLK_old;
+logic willread;
+logic [7:0] cnt;
+
+always_ff @(posedge CLOCK_50)
+begin
+	// Save the old clock state
+	I2C_SCLK_old <= I2C_SCLK;
+
+	// Init counter to 0
+   if (G_SENSOR_CS_N) begin
+		cnt <= 1'b0;
+		willread <= 1'b0;
+	end else if (~I2C_SCLK && I2C_SCLK_old && cnt == 8'd0) begin 
+		willread <= DataOut;
+		cnt <= cnt + 8'd1;
+   end else if (~I2C_SCLK && I2C_SCLK_old) cnt <= cnt + 8'd1;
+end
+
+// Do not drive I2C_DAT if we are reading from it
+assign I2C_SDAT = (cnt > 8) && willread ? 1'bz : DataOut ;
+
 //=======================================================
 //  Structural coding
 //=======================================================
@@ -165,12 +188,11 @@ assign PIC32_SDI1A = PIC32_CS_FPGA_N ? 1'bz : SDI1A;
  mtlsopc u0 (
 	  .clk_clk                                 (CLOCK_50),
 	  .reset_reset_n                           (KEY[0]),
-	  
-	  
+
 	  .altpll_areset_conduit_export            (),
 	  .altpll_locked_conduit_export            (),
 	  .altpll_phasedone_conduit_export         (),
-	  
+
 	  .altpll_sdram_clk                        (DRAM_CLK),
 	  .sdram_wire_addr                         (DRAM_ADDR),
 	  .sdram_wire_ba                           (DRAM_BA),
@@ -181,7 +203,7 @@ assign PIC32_SDI1A = PIC32_CS_FPGA_N ? 1'bz : SDI1A;
 	  .sdram_wire_dqm                          (DRAM_DQM),
 	  .sdram_wire_ras_n                        (DRAM_RAS_N),
 	  .sdram_wire_we_n                         (DRAM_WE_N),
-	  
+
 	  .alt_vip_itc_clocked_video_vid_clk       (video_clk),
 	  .alt_vip_itc_clocked_video_vid_data      ({8'b0, video_r, video_g, video_b}),
 	  .alt_vip_itc_clocked_video_underflow     (),
@@ -191,17 +213,22 @@ assign PIC32_SDI1A = PIC32_CS_FPGA_N ? 1'bz : SDI1A;
 	  .alt_vip_itc_clocked_video_vid_f         (),
 	  .alt_vip_itc_clocked_video_vid_h         (),
 	  .alt_vip_itc_clocked_video_vid_v         (),
-	  
+
 	  .multi_touch_I2C_SDA                     (MTL_TOUCH_I2C_SDA),
      .multi_touch_I2C_SCL                     (MTL_TOUCH_I2C_SCL),
      .multi_touch_INT_n                       (MTL_TOUCH_INT_n),
-      
+
      .pic32_MISO                              (SDI1A),
      .pic32_MOSI                              (PIC32_SDO1A),
      .pic32_SCK                               (PIC32_SCK1A),
      .pic32_CS_N                              (PIC32_CS_FPGA_N),
      .pic32_int2_export                       (1'b0),//(PIC32_INT2),
-	  .pic32_int1_export                       (PIC32_INT1)
+	  .pic32_int1_export                       (PIC32_INT1),
+
+	  .adxl345_MISO                            (I2C_SDAT),
+     .adxl345_MOSI                            (DataOut),
+     .adxl345_SCLK                            (I2C_SCLK),
+     .adxl345_SS_n                            (G_SENSOR_CS_N)
 	  
  );
 
