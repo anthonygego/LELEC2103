@@ -7,19 +7,11 @@
 #include <altera_avalon_sgdma_descriptor.h>
 
 #include "sgdma.h"
-
-void sgdma_isr(void *isr_context)
-{
-	//sgdma_info * p = (sgdma_info *) isr_context;
-	printf("DMA operation finished\n!");
-}
+#include "freader.h"
 
 sgdma_info * sgdma_init(const char * NAME)
 {
 	sgdma_info * p = alt_avalon_sgdma_open(NAME);
-	alt_u32 control = IORD_ALTERA_AVALON_SGDMA_CONTROL(p->base);
-	IOWR_ALTERA_AVALON_SGDMA_CONTROL(p->base, control | ALTERA_AVALON_SGDMA_CONTROL_IE_CHAIN_COMPLETED_MSK);
-	alt_avalon_sgdma_register_callback(p, sgdma_isr, p->chain_control, p);
 	return p;
 }
 
@@ -28,7 +20,7 @@ void sgdma_uninit(sgdma_info * p) {
 		free(p);
 }
 
-void sgdma_memcpy(sgdma_info *dma, void *dest, void *src, int size){
+void sgdma_memcpy(sgdma_info *p, void *dest, void *src, int size){
 
     // Allocate descriptors list
     int nb_desc = (size+SGDMA_MAX_BLOCK_SIZE-1)/SGDMA_MAX_BLOCK_SIZE;
@@ -56,8 +48,29 @@ void sgdma_memcpy(sgdma_info *dma, void *dest, void *src, int size){
     }
 
     // Start synchronous transfer (memcpy is synchronous)
-    alt_avalon_sgdma_do_sync_transfer(dma, desc);
+    alt_avalon_sgdma_do_sync_transfer(p, desc);
 
     // Free resource
     free(desc);
+}
+
+void sgdma_imgcpy(sgdma_info * p, void * img, void * buffer, int x, int y, int c_width, int c_height, int t_width, int t_height) {
+
+	alt_sgdma_descriptor *desc = (alt_sgdma_descriptor *) malloc(sizeof(alt_sgdma_descriptor)*c_height);
+
+	int i;
+	for(i=0; i < c_height; i++)
+	{
+		// One SGDMA descriptor per line
+		alt_u32 * src_pos = (alt_u32 *) img + i*t_width;
+		alt_u32 * dest_pos = (alt_u32 *) buffer + (y+i)*FREADER_MAX_WIDTH + x;
+
+		alt_avalon_sgdma_construct_mem_to_mem_desc(desc+i, (i == c_height-1)? 0: (desc+i+1), src_pos, dest_pos, c_width*sizeof(alt_u32), 0, 0);
+	}
+
+	// Start synchronous transfer (memcpy is synchronous)
+	alt_avalon_sgdma_do_sync_transfer(p, desc);
+
+	// Free resource
+	free(desc);
 }

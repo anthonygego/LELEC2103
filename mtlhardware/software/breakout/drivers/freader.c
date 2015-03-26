@@ -3,7 +3,8 @@
 #include <string.h>
 #include <sys/alt_cache.h>
 
-#include <freader.h>
+#include "freader.h"
+#include "sgdma.h"
 
 freader_info* freader_init(alt_u32 FREADER_BASE, alt_u32 width, alt_u32 height) {
 	// Initialize frame reader info
@@ -18,7 +19,7 @@ freader_info* freader_init(alt_u32 FREADER_BASE, alt_u32 width, alt_u32 height) 
     freader_go(p, 0);
 
     // Configure frame 0
-	IOWR(FREADER_BASE, FREADER_FRAME0_BASE, (alt_u32)p->frame_buffer[0].lin);
+	IOWR(FREADER_BASE, FREADER_FRAME0_BASE, (alt_u32)p->frame_buffer[0]);
 	IOWR(FREADER_BASE, FREADER_FRAME0_WORDS, width*height);
 	IOWR(FREADER_BASE, FREADER_FRAME0_COLOR_PATTERN, width*height);
 	IOWR(FREADER_BASE, FREADER_FRAME0_WIDTH, width);
@@ -26,7 +27,7 @@ freader_info* freader_init(alt_u32 FREADER_BASE, alt_u32 width, alt_u32 height) 
 	IOWR(FREADER_BASE, FREADER_FRAME0_INTERLACE, 0);
 
 	// Configure frame 1
-	IOWR(FREADER_BASE, FREADER_FRAME1_BASE, (alt_u32)p->frame_buffer[1].lin);
+	IOWR(FREADER_BASE, FREADER_FRAME1_BASE, (alt_u32)p->frame_buffer[1]);
 	IOWR(FREADER_BASE, FREADER_FRAME1_WORDS, width*height);
 	IOWR(FREADER_BASE, FREADER_FRAME1_COLOR_PATTERN, width*height);
 	IOWR(FREADER_BASE, FREADER_FRAME1_WIDTH, width);

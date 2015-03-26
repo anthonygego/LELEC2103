@@ -16,6 +16,7 @@ typedef struct {
 	freader_info   * freader_handle;
 	OS_EVENT       * freader_sem;
 	sgdma_info     * sgdma_handle;
+	OS_EVENT	   * sgdma_sem;
 } game_state;
 
 #endif /* BREAKOUT_H_ */

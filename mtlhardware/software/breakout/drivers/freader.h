@@ -20,14 +20,9 @@
 #define FREADER_MAX_HEIGHT			  480
 #define FREADER_MAX_WIDTH			  800
 
-typedef union {
-	int tab[FREADER_MAX_HEIGHT][FREADER_MAX_WIDTH];
-	int lin[FREADER_MAX_HEIGHT*FREADER_MAX_WIDTH];
-} graphics_buffer;
-
 typedef struct{
     alt_u32 FREADER_BASE;
-    graphics_buffer frame_buffer[2];
+    alt_u32 frame_buffer [2][FREADER_MAX_HEIGHT][FREADER_MAX_WIDTH];
     alt_u8  current_frame;
     int width;
     int height;
@@ -37,5 +32,4 @@ freader_info* freader_init(alt_u32 FREADER_BASE, alt_u32 width, alt_u32 height);
 void   		  freader_uninit(freader_info* p);
 void          freader_go(freader_info* p, alt_u8 bGo);
 void          freader_select_frame(freader_info* p, alt_u8 FrameIndex);
-
 #endif /* FREADER_H_ */

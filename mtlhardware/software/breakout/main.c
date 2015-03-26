@@ -16,7 +16,7 @@
 #include "breakout.h"
 
 /* Definition of Task Stacks */
-#define     TASK_STACKSIZE       2048//2048
+#define     TASK_STACKSIZE       8192
 OS_STK      display_task_stk     [TASK_STACKSIZE];
 OS_STK      rpc_task_stk         [TASK_STACKSIZE];
 OS_STK      console_task_stk     [TASK_STACKSIZE];
@@ -47,6 +47,7 @@ int main(void)
 
 	// Initialize SGDMA
 	game.sgdma_handle = sgdma_init(SGDMA_NAME);
+	game.sgdma_sem = OSSemCreate(1);
 
 	// Create Dislpay task
 	OSTaskCreateExt(display_task,
