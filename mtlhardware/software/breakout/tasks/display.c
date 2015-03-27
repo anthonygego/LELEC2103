@@ -16,6 +16,7 @@
 #include "console.h"
 #include "mpack.h"
 #include "breakout.h"
+#include "display.h"
 
 void display_isr(void * context)
 {
@@ -134,15 +135,31 @@ void display_task(void* pdata)
 		{
 			alt_sgdma_descriptor * desc = (alt_sgdma_descriptor *) queue_pop(freader->desc_queue);
 			freader->desc_last = (alt_u32) desc;
+#ifdef ENABLE_ASYNC_TRANSFER
+			alt_avalon_sgdma_do_async_transfer(sgdma, desc);
+#else
 			alt_avalon_sgdma_do_sync_transfer(sgdma, desc);
-			// ADD SYNC
+			desc = (alt_sgdma_descriptor *) queue_pop(freader->desc_queue);
+			freader->desc_last = (alt_u32) desc;
+			alt_avalon_sgdma_do_sync_transfer(sgdma, desc);
+
+			if(ge && ge->type == MOVE)
+			{
+				desc = (alt_sgdma_descriptor *) queue_pop(freader->desc_queue);
+				freader->desc_last = (alt_u32) desc;
+				alt_avalon_sgdma_do_sync_transfer(sgdma, desc);
+				desc = (alt_sgdma_descriptor *) queue_pop(freader->desc_queue);
+				freader->desc_last = (alt_u32) desc;
+				alt_avalon_sgdma_do_sync_transfer(sgdma, desc);
+			}
+
 			freader_switch_frame(freader);
 			free((alt_sgdma_descriptor *) (freader->desc_last));
 			freader->desc_last = 0;
-			// ADD SYNC
+#endif
 		}
 		OSSemPost(freader->desc_sem);
 
-		OSTimeDlyHMSM(0, 0, 0, 20);
+		OSTimeDlyHMSM(0, 0, 0, 10);
 	}
 }

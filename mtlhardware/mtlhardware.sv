@@ -29,6 +29,12 @@ module mtlhardware(
 	DRAM_RAS_N,
 	DRAM_WE_N,
 
+	//////////// EPCS //////////
+	EPCS_ASDO,
+	EPCS_DATA0,
+	EPCS_DCLK,
+	EPCS_NCSO,
+
 	//////////// Accelerometer //////////
 	G_SENSOR_CS_N,
 	G_SENSOR_INT,
@@ -95,6 +101,12 @@ inout 		    [15:0]		DRAM_DQ;
 output		     [1:0]		DRAM_DQM;
 output		          		DRAM_RAS_N;
 output		          		DRAM_WE_N;
+
+//////////// EPCS //////////
+output		          		EPCS_ASDO;
+input 		          		EPCS_DATA0;
+output		          		EPCS_DCLK;
+output		          		EPCS_NCSO;
 
 //////////// Accelerometer //////////
 output		          		G_SENSOR_CS_N;
@@ -228,7 +240,12 @@ assign PIC32_SDI1A = PIC32_CS_FPGA_N ? 1'bz : SDI1A;
 	  .adxl345_MISO                            (I2C_SDAT),
      .adxl345_MOSI                            (DataOut),
      .adxl345_SCLK                            (I2C_SCLK),
-     .adxl345_SS_n                            (G_SENSOR_CS_N)
+     .adxl345_SS_n                            (G_SENSOR_CS_N),
+	  
+	  .flash_dclk                              (EPCS_DCLK),
+     .flash_sce                               (EPCS_NCSO),
+     .flash_sdo                               (EPCS_ASDO),
+     .flash_data0                             (EPCS_DATA0)
 	  
  );
 
