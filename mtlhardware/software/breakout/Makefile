@@ -160,6 +160,7 @@ C_SRCS += tasks/display.c
 C_SRCS += drivers/sgdma.c
 C_SRCS += util/sprite.c
 C_SRCS += drivers/adxl345.c
+C_SRCS += tasks/game.c
 CXX_SRCS :=
 ASM_SRCS :=
 

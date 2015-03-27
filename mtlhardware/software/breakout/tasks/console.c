@@ -14,7 +14,7 @@
 
 void console_task(void* pdata)
 {
-	game_state * game = (game_state *) pdata;
+	game_struct * game = (game_struct *) pdata;
 
 	// Welcome message
 	printf("Breakout console\n");
@@ -48,7 +48,7 @@ void console_task(void* pdata)
 			size_t count = mpack_writer_buffer_used(&writer);
 			mpack_writer_destroy(&writer);
 
-			pic32_sendrpc(game->pic32_handle, buffer, count, CYCLONE_RPC_MIWI);
+			pic32_sendrpc(game->periph.pic32_handle, buffer, count, CYCLONE_RPC_MIWI);
 
 			printf("Message sent !\n\n");
 		}
@@ -58,8 +58,8 @@ void console_task(void* pdata)
 			char * msg;
 			size_t len;
 
-			pic32_sendrpc(game->pic32_handle, "test.txt", 9, CYCLONE_RPC_FILE);
-			while(!pic32_receive(game->pic32_handle, &msg, &len, 0));
+			pic32_sendrpc(game->periph.pic32_handle, "test.txt", 9, CYCLONE_RPC_FILE);
+			while(!pic32_receive(game->periph.pic32_handle, &msg, &len, 0));
 
 			fwrite(msg,1,len,stdout);
 			printf("\n");
@@ -69,7 +69,7 @@ void console_task(void* pdata)
 			alt_u8 event, touchnum;
 			int x1,x2,y1,y2;
 
-			if(mtc_get_status(game->mtc_handle, &event, &touchnum, &x1, &y1, &x2, &y2))
+			if(mtc_get_status(game->periph.mtc_handle, &event, &touchnum, &x1, &y1, &x2, &y2))
 				if(touchnum == 2)
 					printf("x1: %3d, y1: %3d\nx2: %3d, y2: %3d\nTouch num : %d\nEvent : 0x%X\n", x1, y1, x2, y2, touchnum, event);
 				else
@@ -80,7 +80,7 @@ void console_task(void* pdata)
 		else if(!strncmp(command, "MyADXL", 6))
 		{
 			adxl345_coordinates c;
-			adxl345_read(game->adxl345_handle, ADXL345_DATAX0, (alt_u8 *)  &c, 6);
+			adxl345_read(game->periph.adxl345_handle, ADXL345_DATAX0, (alt_u8 *)  &c, 6);
 			printf("X : %d - Y: %d, Z : %d\n", c.x, c.y, c.z);
 		}
 		else

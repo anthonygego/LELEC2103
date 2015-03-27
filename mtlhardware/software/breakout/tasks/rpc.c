@@ -13,14 +13,14 @@
 
 void rpc_task(void* pdata)
 {
-	game_state * game = (game_state *) pdata;
+	game_struct * game = (game_struct *) pdata;
 
 	while (1)
 	{
 		char * msg;
 		size_t len;
 
-		if(pic32_receive(game->pic32_handle, &msg, &len, 1))
+		if(pic32_receive(game->periph.pic32_handle, &msg, &len, 1))
 		{
 			printf("\n---\nReceived RPC message of size %d ! \n", len);
 			// parse a data buffer into a node tree
@@ -39,6 +39,6 @@ void rpc_task(void* pdata)
 			free(msg);
 			printf("---\n");
 		}
-		OSTimeDlyHMSM(0, 0, 0, 50);
+		OSTimeDlyHMSM(0, 0, 0, 200);
 	}
 }
