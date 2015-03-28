@@ -11,10 +11,13 @@ queue * queue_new(int nqueueNum){
     pqueue->rear = 0;
     pqueue->data = malloc(nqueueNum*sizeof(alt_u32));
     pqueue->num = nqueueNum;
+    pqueue->sem = OSSemCreate(1);
     return pqueue;
 }
 
 void queue_delete(queue *pqueue){
+	alt_u8 err;
+	OSSemDel(pqueue->sem, OS_DEL_ALWAYS, &err);
 	free(pqueue->data);
     free(pqueue);
 }

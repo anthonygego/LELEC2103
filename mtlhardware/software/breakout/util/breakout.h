@@ -5,15 +5,13 @@
 
 #include "mtc.h"
 #include "pic32.h"
-#include "freader.h"
-#include "sgdma.h"
+#include "display.h"
 #include "adxl345.h"
 
 typedef struct {
 	pic32_info     * pic32_handle;
 	mtc_info       * mtc_handle;
-	freader_info   * freader_handle;
-	sgdma_info     * sgdma_handle;
+	display_info   * display_handle;
 	adxl345_info   * adxl345_handle;
 } peripherals;
 

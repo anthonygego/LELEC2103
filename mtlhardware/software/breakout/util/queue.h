@@ -1,6 +1,7 @@
 #ifndef QUEUE_H_
 #define QUEUE_H_
 
+#include <includes.h>
 #include <alt_types.h>
 
 typedef struct
@@ -9,6 +10,7 @@ typedef struct
     alt_u32 front;
     alt_u32 rear;
     alt_u32 *data;
+    OS_EVENT *sem;
 } queue;
 
 queue*   queue_new(int nqueueNum);

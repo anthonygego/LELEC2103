@@ -3,7 +3,7 @@
 
 #include "sprite.h"
 
-sprite * sprite_init(alt_u16 x, alt_u16 y, alt_u16 width, alt_u16 height, alt_u32 * base, sprite_type type)
+sprite * sprite_init(alt_u16 x, alt_u16 y, alt_u16 width, alt_u16 height, alt_u32 * base, alt_u8 texture)
 {
 	sprite *p = malloc(sizeof(sprite));
 	p->x = x;
@@ -11,7 +11,7 @@ sprite * sprite_init(alt_u16 x, alt_u16 y, alt_u16 width, alt_u16 height, alt_u3
 	p->height = height;
 	p->width = width;
 	p->img_base = base;
-	p->type = type;
+	p->texture = texture;
 
 	return p;
 }

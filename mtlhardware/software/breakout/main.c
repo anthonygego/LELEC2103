@@ -10,7 +10,7 @@
 
 #include "console.h"
 #include "rpc.h"
-#include "display.h"
+#include "graphics.h"
 #include "game.h"
 
 #include "mpack.h"
@@ -18,7 +18,7 @@
 
 /* Definition of Task Stacks */
 #define     TASK_STACKSIZE       8192
-OS_STK      display_task_stk     [TASK_STACKSIZE];
+OS_STK      graphics_task_stk    [TASK_STACKSIZE];
 OS_STK      game_task_stk        [TASK_STACKSIZE];
 OS_STK      rpc_task_stk         [TASK_STACKSIZE];
 OS_STK      console_task_stk     [TASK_STACKSIZE];
@@ -26,7 +26,7 @@ OS_STK      console_task_stk     [TASK_STACKSIZE];
 
 /* Definition of Task Priorities */
 
-#define DISPLAY_TASK_PRIORITY      1
+#define GRAPHICS_TASK_PRIORITY     1
 #define GAME_TASK_PRIORITY         2
 #define RPC_TASK_PRIORITY          3
 #define CONSOLE_TASK_PRIORITY      4
@@ -42,22 +42,19 @@ int main(void)
 	// Initialize MultiTouch Controller
 	game.periph.mtc_handle = mtc_init(MULTI_TOUCH_BASE, MULTI_TOUCH_IRQ_INTERRUPT_CONTROLLER_ID, MULTI_TOUCH_IRQ);
 
-	// Initialize Frame Reader
-	game.periph.freader_handle = freader_init(ALT_VIP_VFR_BASE, FREADER_MAX_WIDTH, FREADER_MAX_HEIGHT);
-
-	// Initialize SGDMA
-	game.periph.sgdma_handle = sgdma_init(SGDMA_NAME, display_isr, &game);
+	// Initialize Display
+	game.periph.display_handle = display_init(ALT_VIP_VFR_BASE, SGDMA_NAME, graphics_isr, &game);
 
 	// Initialize Accelerometer
 	game.periph.adxl345_handle = adxl345_init(ADXL345_BASE);
 
-	// Create Display task
-	OSTaskCreateExt(display_task,
+	// Create Graphics task
+	OSTaskCreateExt(graphics_task,
 				  (void *)&game,
-				  (void *)&display_task_stk[TASK_STACKSIZE-1],
-				  DISPLAY_TASK_PRIORITY,
-				  DISPLAY_TASK_PRIORITY,
-				  display_task_stk,
+				  (void *)&graphics_task_stk[TASK_STACKSIZE-1],
+				  GRAPHICS_TASK_PRIORITY,
+				  GRAPHICS_TASK_PRIORITY,
+				  graphics_task_stk,
 				  TASK_STACKSIZE,
 				  NULL,
 				  0);
