@@ -44,7 +44,6 @@ typedef struct
 } display_info;
 
 display_info* display_init(alt_u32 DISPLAY_BASE, const char * sgdma_name, alt_avalon_sgdma_callback sgdma_callback, void *sgdma_context);
-void 		  display_memcpy(alt_sgdma_dev * p, void * dest, void * src, int size);
 void   		  display_uninit(display_info* p);
 void          display_go(display_info* p, alt_u8 bGo);
 void          display_switch_frame(display_info* p);
@@ -53,6 +52,6 @@ void          display_move_sprite(display_info *p, sprite *s, alt_u8 end_frame, 
 void          display_remove_sprite(display_info *p, sprite *s, alt_u8 end_frame);
 void          display_add_sprite(display_info *p, sprite *s, alt_u8 end_frame);
 void          display_push_desc(display_info* p, alt_sgdma_descriptor * desc, alt_u8 frame, alt_u8 end_frame);
-alt_sgdma_descriptor * display_imgcpy_desc(display_info *p, alt_u8 frame, void * img, int x, int y, int c_width, int c_height, int t_width, int t_height);
+alt_sgdma_descriptor * display_imgcpy_desc(display_info *p, alt_u8 frame, void * img, int x, int y, int c_width, int c_height, int t_width, int t_height, alt_u32 alpha);
 
 #endif /* DISPLAY_H_ */
