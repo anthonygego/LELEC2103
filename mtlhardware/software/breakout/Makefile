@@ -142,13 +142,6 @@ ACDS_VERSION := 13.1
 ELF := breakout.elf
 
 # Paths to C, C++, and assembly source files.
-C_SRCS += mpack/mpack-common.c
-C_SRCS += mpack/mpack-expect.c
-C_SRCS += mpack/mpack-internal.c
-C_SRCS += mpack/mpack-node.c
-C_SRCS += mpack/mpack-platform.c
-C_SRCS += mpack/mpack-reader.c
-C_SRCS += mpack/mpack-writer.c
 C_SRCS += drivers/pic32.c
 C_SRCS += tasks/console.c
 C_SRCS += tasks/rpc.c
@@ -160,6 +153,14 @@ C_SRCS += drivers/adxl345.c
 C_SRCS += tasks/game.c
 C_SRCS += tasks/graphics.c
 C_SRCS += drivers/display.c
+C_SRCS += util/breakout.c
+C_SRCS += mpack/mpack-common.c
+C_SRCS += mpack/mpack-expect.c
+C_SRCS += mpack/mpack-internal.c
+C_SRCS += mpack/mpack-node.c
+C_SRCS += mpack/mpack-platform.c
+C_SRCS += mpack/mpack-reader.c
+C_SRCS += mpack/mpack-writer.c
 CXX_SRCS :=
 ASM_SRCS :=
 

@@ -53,15 +53,7 @@
       }
       datum baseAddress
       {
-         value = "67131840";
-         type = "String";
-      }
-   }
-   element pic32.avalon_slave
-   {
-      datum baseAddress
-      {
-         value = "67131808";
+         value = "67119552";
          type = "String";
       }
    }
@@ -69,7 +61,15 @@
    {
       datum baseAddress
       {
-         value = "67131392";
+         value = "67119104";
+         type = "String";
+      }
+   }
+   element pic32.avalon_slave
+   {
+      datum baseAddress
+      {
+         value = "67119520";
          type = "String";
       }
    }
@@ -77,7 +77,7 @@
    {
       datum baseAddress
       {
-         value = "67131520";
+         value = "67119232";
          type = "String";
       }
    }
@@ -101,7 +101,7 @@
    {
       datum baseAddress
       {
-         value = "67131648";
+         value = "67119360";
          type = "String";
       }
    }
@@ -109,7 +109,7 @@
    {
       datum baseAddress
       {
-         value = "67127296";
+         value = "67115008";
          type = "String";
       }
    }
@@ -125,7 +125,7 @@
    {
       datum baseAddress
       {
-         value = "67129344";
+         value = "67117056";
          type = "String";
       }
    }
@@ -173,7 +173,7 @@
    {
       datum baseAddress
       {
-         value = "67131824";
+         value = "67119536";
          type = "String";
       }
    }
@@ -185,11 +185,19 @@
          type = "String";
       }
    }
+   element sdram.s1
+   {
+      datum baseAddress
+      {
+         value = "33554432";
+         type = "String";
+      }
+   }
    element pic32_int2.s1
    {
       datum baseAddress
       {
-         value = "67131776";
+         value = "67119488";
          type = "String";
       }
    }
@@ -205,15 +213,7 @@
    {
       datum baseAddress
       {
-         value = "67131792";
-         type = "String";
-      }
-   }
-   element sdram.s1
-   {
-      datum baseAddress
-      {
-         value = "33554432";
+         value = "67119504";
          type = "String";
       }
    }
@@ -221,7 +221,7 @@
    {
       datum baseAddress
       {
-         value = "67131744";
+         value = "67119456";
          type = "String";
       }
    }
@@ -245,7 +245,7 @@
    {
       datum baseAddress
       {
-         value = "67131712";
+         value = "67119424";
          type = "String";
       }
    }
@@ -414,7 +414,7 @@
   <parameter name="dcache_victim_buf_impl" value="ram" />
   <parameter name="debug_level" value="Level1" />
   <parameter name="debug_OCIOnchipTrace" value="_128" />
-  <parameter name="dcache_size" value="2048" />
+  <parameter name="dcache_size" value="4096" />
   <parameter name="dcache_tagramBlockType" value="Automatic" />
   <parameter name="dcache_ramBlockType" value="Automatic" />
   <parameter name="dcache_numTCDM" value="0" />
@@ -441,8 +441,8 @@
   <parameter name="tightlyCoupledInstructionMaster1AddrWidth" value="1" />
   <parameter name="tightlyCoupledInstructionMaster2AddrWidth" value="1" />
   <parameter name="tightlyCoupledInstructionMaster3AddrWidth" value="1" />
-  <parameter name="instSlaveMapParam"><![CDATA[<address-map><slave name='sdram.s1' start='0x2000000' end='0x4000000' /><slave name='cpu.jtag_debug_module' start='0x4005000' end='0x4005800' /></address-map>]]></parameter>
-  <parameter name="dataSlaveMapParam"><![CDATA[<address-map><slave name='sdram.s1' start='0x2000000' end='0x4000000' /><slave name='textures.s1' start='0x4000000' end='0x4002000' /><slave name='flash.epcs_control_port' start='0x4004800' end='0x4005000' /><slave name='cpu.jtag_debug_module' start='0x4005000' end='0x4005800' /><slave name='multi_touch.avalon_slave' start='0x4005800' end='0x4005880' /><slave name='alt_vip_vfr.avalon_slave' start='0x4005880' end='0x4005900' /><slave name='sgdma.csr' start='0x4005900' end='0x4005940' /><slave name='adxl345.spi_control_port' start='0x4005940' end='0x4005960' /><slave name='timer.s1' start='0x4005960' end='0x4005980' /><slave name='pic32_int2.s1' start='0x4005980' end='0x4005990' /><slave name='pic32_int1.s1' start='0x4005990' end='0x40059A0' /><slave name='pic32.avalon_slave' start='0x40059A0' end='0x40059B0' /><slave name='altpll.pll_slave' start='0x40059B0' end='0x40059C0' /><slave name='jtag_uart.avalon_jtag_slave' start='0x40059C0' end='0x40059C8' /></address-map>]]></parameter>
+  <parameter name="instSlaveMapParam"><![CDATA[<address-map><slave name='sdram.s1' start='0x2000000' end='0x4000000' /><slave name='cpu.jtag_debug_module' start='0x4002000' end='0x4002800' /></address-map>]]></parameter>
+  <parameter name="dataSlaveMapParam"><![CDATA[<address-map><slave name='sdram.s1' start='0x2000000' end='0x4000000' /><slave name='textures.s1' start='0x4000000' end='0x4001000' /><slave name='flash.epcs_control_port' start='0x4001800' end='0x4002000' /><slave name='cpu.jtag_debug_module' start='0x4002000' end='0x4002800' /><slave name='multi_touch.avalon_slave' start='0x4002800' end='0x4002880' /><slave name='alt_vip_vfr.avalon_slave' start='0x4002880' end='0x4002900' /><slave name='sgdma.csr' start='0x4002900' end='0x4002940' /><slave name='adxl345.spi_control_port' start='0x4002940' end='0x4002960' /><slave name='timer.s1' start='0x4002960' end='0x4002980' /><slave name='pic32_int2.s1' start='0x4002980' end='0x4002990' /><slave name='pic32_int1.s1' start='0x4002990' end='0x40029A0' /><slave name='pic32.avalon_slave' start='0x40029A0' end='0x40029B0' /><slave name='altpll.pll_slave' start='0x40029B0' end='0x40029C0' /><slave name='jtag_uart.avalon_jtag_slave' start='0x40029C0' end='0x40029C8' /></address-map>]]></parameter>
   <parameter name="clockFrequency" value="100000000" />
   <parameter name="deviceFamilyName" value="Cyclone IV E" />
   <parameter name="internalIrqMaskSystemInfo" value="255" />
@@ -827,7 +827,7 @@
   <parameter name="initMemContent" value="true" />
   <parameter name="initializationFileName" value="onchip_mem.hex" />
   <parameter name="instanceID" value="NONE" />
-  <parameter name="memorySize" value="8192" />
+  <parameter name="memorySize" value="4096" />
   <parameter name="readDuringWriteMode" value="DONT_CARE" />
   <parameter name="simAllowMRAMContentsFile" value="false" />
   <parameter name="simMemInitOnlyFilename" value="0" />
@@ -848,7 +848,7 @@
    start="cpu.instruction_master"
    end="cpu.jtag_debug_module">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x04005000" />
+  <parameter name="baseAddress" value="0x04002000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -857,7 +857,7 @@
    start="cpu.data_master"
    end="cpu.jtag_debug_module">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x04005000" />
+  <parameter name="baseAddress" value="0x04002000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection kind="reset" version="13.1" start="clk_0.clk_reset" end="cpu.reset_n" />
@@ -878,13 +878,13 @@
    start="cpu.data_master"
    end="jtag_uart.avalon_jtag_slave">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x040059c0" />
+  <parameter name="baseAddress" value="0x040029c0" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection kind="reset" version="13.1" start="clk_0.clk_reset" end="timer.reset" />
  <connection kind="avalon" version="13.1" start="cpu.data_master" end="timer.s1">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x04005960" />
+  <parameter name="baseAddress" value="0x04002960" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -898,7 +898,7 @@
    start="cpu.data_master"
    end="alt_vip_vfr.avalon_slave">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x04005880" />
+  <parameter name="baseAddress" value="0x04002880" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -937,7 +937,7 @@
    start="cpu.data_master"
    end="multi_touch.avalon_slave">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x04005800" />
+  <parameter name="baseAddress" value="0x04002800" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -946,7 +946,7 @@
    start="cpu.data_master"
    end="altpll.pll_slave">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x040059b0" />
+  <parameter name="baseAddress" value="0x040029b0" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -986,7 +986,7 @@
    start="cpu.data_master"
    end="pic32.avalon_slave">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x040059a0" />
+  <parameter name="baseAddress" value="0x040029a0" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -1001,7 +1001,7 @@
    start="cpu.data_master"
    end="pic32_int1.s1">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x04005990" />
+  <parameter name="baseAddress" value="0x04002990" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection kind="clock" version="13.1" start="altpll.c0" end="pic32_int2.clk" />
@@ -1016,14 +1016,14 @@
    start="cpu.data_master"
    end="pic32_int2.s1">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x04005980" />
+  <parameter name="baseAddress" value="0x04002980" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection kind="clock" version="13.1" start="altpll.c0" end="sgdma.clk" />
  <connection kind="reset" version="13.1" start="clk_0.clk_reset" end="sgdma.reset" />
  <connection kind="avalon" version="13.1" start="cpu.data_master" end="sgdma.csr">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x04005900" />
+  <parameter name="baseAddress" value="0x04002900" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection kind="avalon" version="13.1" start="sgdma.m_write" end="sdram.s1">
@@ -1079,7 +1079,7 @@
    start="cpu.data_master"
    end="adxl345.spi_control_port">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x04005940" />
+  <parameter name="baseAddress" value="0x04002940" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -1088,7 +1088,7 @@
    start="cpu.data_master"
    end="flash.epcs_control_port">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x04004800" />
+  <parameter name="baseAddress" value="0x04001800" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection kind="clock" version="13.1" start="altpll.c0" end="flash.clk" />

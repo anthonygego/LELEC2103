@@ -17,7 +17,7 @@
 #include "breakout.h"
 
 /* Definition of Task Stacks */
-#define     TASK_STACKSIZE       8192
+#define     TASK_STACKSIZE       2048
 OS_STK      graphics_task_stk    [TASK_STACKSIZE];
 OS_STK      game_task_stk        [TASK_STACKSIZE];
 OS_STK      rpc_task_stk         [TASK_STACKSIZE];
@@ -47,6 +47,8 @@ int main(void)
 
 	// Initialize Accelerometer
 	game.periph.adxl345_handle = adxl345_init(ADXL345_BASE);
+
+	game.state = NOGAME;
 
 	// Create Graphics task
 	OSTaskCreateExt(graphics_task,

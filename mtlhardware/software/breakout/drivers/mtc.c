@@ -108,7 +108,7 @@ void mtc_uninit(mtc_info *p){
     }
 }
 
-alt_u8 mtc_get_status(mtc_info *p, alt_u8 *event, alt_u8 *TouchNum, int *x1, int *y1, int *x2, int *y2 ){
+alt_u8 mtc_get_status(mtc_info *p, alt_u8 *event, alt_u8 *TouchNum, alt_u16 *x1, alt_u16 *y1, alt_u16 *x2, alt_u16 *y2 ){
 
 	// If queue is empty, return 0
 	if(queue_is_empty(p->pQueue))

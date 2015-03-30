@@ -72,7 +72,7 @@ typedef struct {
 
 mtc_info* mtc_init(alt_u32 MUTI_TOUCH_BASE, alt_u32 INT_IRQ_CONTROLLER, alt_u32 INT_IRQ_NUM);
 void      mtc_uninit(mtc_info *p);
-alt_u8    mtc_get_status(mtc_info *p, alt_u8 *Event, alt_u8 *TouchNum, int *x1, int *y1, int *x2, int *y2);
+alt_u8    mtc_get_status(mtc_info *p, alt_u8 *Event, alt_u8 *TouchNum, alt_u16 *x1, alt_u16 *y1, alt_u16 *x2, alt_u16 *y2);
 void      mtc_clear_event(mtc_info *p);
 
 #endif /*MULTI_TOUCH_H_*/

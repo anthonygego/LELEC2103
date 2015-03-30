@@ -2,8 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <system.h>
+#include <string.h>
 #include <includes.h>
 #include <alt_types.h>
+#include <sys/alt_stdio.h>
 
 #include "pic32.h"
 #include "mtc.h"
@@ -11,6 +13,19 @@
 #include "console.h"
 #include "mpack.h"
 #include "breakout.h"
+
+static char level [400] =" * * * * * 1 1 1 1 * * * * *\
+* * * * 1 1 1 1 1 1 * * * *\
+* * * 1 1 1 2 2 1 1 1 * * *\
+* * 1 1 2 2 3 3 2 2 1 1 * *\
+* * 1 2 2 3 4 4 3 2 2 1 * *\
+* 1 1 2 3 4 4 4 4 3 2 1 1 *\
+* 1 1 2 3 4 4 4 4 3 2 1 1 *\
+* * 1 2 2 3 4 4 3 2 2 1 * *\
+* * 1 1 2 2 3 3 2 2 1 1 * *\
+* * * 1 1 1 2 2 1 1 1 * * *\
+* * * * 1 1 1 1 1 1 * * * *\
+* * * * * 1 1 1 1 * * * * *";
 
 void console_task(void* pdata)
 {
@@ -29,6 +44,10 @@ void console_task(void* pdata)
 		if(!strncmp(command, "MyTest", 6))
 		{
 			printf("MyTest ok !\n");
+		}
+		else if(!strncmp(command, "MyGame", 6))
+		{
+			breakout_init(game, level);
 		}
 		else if(!strncmp(command, "MyMIWI", 6))
 		{
@@ -67,7 +86,7 @@ void console_task(void* pdata)
 		else if(!strncmp(command, "MyMultiTouch", 12))
 		{
 			alt_u8 event, touchnum;
-			int x1,x2,y1,y2;
+			alt_u16 x1,x2,y1,y2;
 
 			if(mtc_get_status(game->periph.mtc_handle, &event, &touchnum, &x1, &y1, &x2, &y2))
 				if(touchnum == 2)
