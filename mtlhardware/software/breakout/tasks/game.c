@@ -10,7 +10,7 @@
 #include "mtc.h"
 #include "display.h"
 #include "rpc.h"
-//#include "mpack.h"
+#include "mpack.h"
 #include "breakout.h"
 #include "sprite.h"
 
@@ -29,6 +29,47 @@ alt_u8 sprite_collision(alt_u16 x1, alt_u16 y1, alt_u16 w1, alt_u16 h1, alt_u32*
 	}
 	else
 		return 0;
+}
+
+void game_event_pop(game_struct * g)
+{
+	alt_u8 err;
+
+	//printf("need mutex\n");
+	// Treat an event if queue is not empty
+	OSSemPend(g->events_queue->sem, 0, &err);
+	//printf("have mutex\n");
+	if(!queue_is_empty(g->events_queue))
+	{
+		game_event event = queue_pop(g->events_queue);
+		switch(event)
+		{
+		case ADD_LIFE:
+			g->lives++;
+			break;
+		case REMOVE_LIFE:
+			g->lives--;
+			break;
+		case SWITCH_PADDLE_SIZE:
+			display_remove_sprite(g->periph.display_handle, g->paddle, 0);
+			g->paddle->width = (g->paddle->width == 200) ? 100 : 200;
+			display_add_sprite(g->periph.display_handle, g->paddle, 0);
+			break;
+		case ADD_BALL:
+			g->balls[1].enabled = 1;
+			break;
+		case SPEED_DOWN:
+			g->speed = (g->speed > 10) ? g->speed - 5 : 5;
+			break;
+		case SPEED_UP:
+			g->speed = (g->speed <= 50) ? g->speed + 5 : 50;
+			break;
+		default:
+			break;
+		}
+
+	}
+	OSSemPost(g->events_queue->sem);
 }
 
 void game_task(void* pdata)
@@ -57,6 +98,9 @@ void game_task(void* pdata)
 		case NOGAME:
 			break;
 		case BALL_MOVING:
+
+			// Pop event queue
+			game_event_pop(game);
 
 			// Update paddle and balls position
 			delta = accel_x - game->paddle->x;

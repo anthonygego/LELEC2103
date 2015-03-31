@@ -34,7 +34,7 @@ void console_task(void* pdata)
 		}
 		else if(!strncmp(command, "MyGame", 6))
 		{
-			alt_16 level;
+			int level;
 			char level_file[100];
 
 			printf("Enter a level :\n");
@@ -51,9 +51,49 @@ void console_task(void* pdata)
 			breakout_init(game, level_text);
 
 			free(level_text);
-
-		}
-		else if(!strncmp(command, "MyMIWI", 6))
+		}else if(!strncmp(command, "AddBall", 7))
+		{
+			printf("Add ball\n");
+			alt_u8 err;
+            OSSemPend(game->events_queue->sem, 0, &err);
+			queue_push(game->events_queue, ADD_BALL);
+			OSSemPost(game->events_queue->sem);
+		}else if(!strncmp(command, "AddLife", 7))
+		{
+			printf("Add life\n");
+			alt_u8 err;
+			OSSemPend(game->events_queue->sem, 0, &err);
+			queue_push(game->events_queue, ADD_LIFE);
+			OSSemPost(game->events_queue->sem);
+		}else if(!strncmp(command, "RemLife", 7))
+		{
+			printf("Remove life\n");
+			alt_u8 err;
+		    OSSemPend(game->events_queue->sem, 0, &err);
+			queue_push(game->events_queue, REMOVE_LIFE);
+			OSSemPost(game->events_queue->sem);
+		}else if(!strncmp(command, "SpeedUp", 7))
+		{
+			printf("Speed up\n");
+			alt_u8 err;
+			OSSemPend(game->events_queue->sem, 0, &err);
+			queue_push(game->events_queue, SPEED_UP);
+			OSSemPost(game->events_queue->sem);
+		}else if(!strncmp(command, "SpeedDown", 9))
+		{
+			printf("Speed down\n");
+			alt_u8 err;
+			OSSemPend(game->events_queue->sem, 0, &err);
+			queue_push(game->events_queue, SPEED_DOWN);
+			OSSemPost(game->events_queue->sem);
+		}else if(!strncmp(command, "PaddleSize", 10))
+		{
+			printf("Paddle size\n");
+			alt_u8 err;
+			OSSemPend(game->events_queue->sem, 0, &err);
+			queue_push(game->events_queue, SWITCH_PADDLE_SIZE);
+			OSSemPost(game->events_queue->sem);
+		}else if(!strncmp(command, "MyMIWI", 6))
 		{
 			char buffer[256];
 			mpack_writer_t writer;
