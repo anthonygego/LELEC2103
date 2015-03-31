@@ -30,6 +30,11 @@
    }
    element lcd.avalon_slave_0
    {
+      datum _lockedAddress
+      {
+         value = "0";
+         type = "boolean";
+      }
       datum baseAddress
       {
          value = "67113144";
@@ -140,30 +145,6 @@
          type = "String";
       }
    }
-   element pic32_int2.s1
-   {
-      datum baseAddress
-      {
-         value = "67113024";
-         type = "String";
-      }
-   }
-   element timer.s1
-   {
-      datum baseAddress
-      {
-         value = "67112992";
-         type = "String";
-      }
-   }
-   element lcd_reset_n.s1
-   {
-      datum baseAddress
-      {
-         value = "67113104";
-         type = "String";
-      }
-   }
    element touch_pen_irq_n.s1
    {
       datum _tags
@@ -185,11 +166,19 @@
          type = "String";
       }
    }
-   element touch_busy.s1
+   element pic32_int2.s1
    {
       datum baseAddress
       {
-         value = "67113072";
+         value = "67113024";
+         type = "String";
+      }
+   }
+   element lcd_reset_n.s1
+   {
+      datum baseAddress
+      {
+         value = "67113104";
          type = "String";
       }
    }
@@ -198,6 +187,22 @@
       datum baseAddress
       {
          value = "33554432";
+         type = "String";
+      }
+   }
+   element timer.s1
+   {
+      datum baseAddress
+      {
+         value = "67112992";
+         type = "String";
+      }
+   }
+   element touch_busy.s1
+   {
+      datum baseAddress
+      {
+         value = "67113072";
          type = "String";
       }
    }
@@ -286,7 +291,6 @@
    dir="end" />
  <interface name="pll_sdram" internal="pll.c1" type="clock" dir="start" />
  <interface name="sdram_wire" internal="sdram.wire" type="conduit" dir="end" />
- <interface name="lcd" internal="lcd.conduit_end" type="conduit" dir="end" />
  <interface
    name="lcd_reset_n"
    internal="lcd_reset_n.external_connection"
@@ -314,6 +318,7 @@
    internal="pic32_int2.external_connection"
    type="conduit"
    dir="end" />
+ <interface name="lcd" internal="lcd.conduit_end" type="conduit" dir="end" />
  <module kind="clock_source" version="13.1" enabled="1" name="clk_0">
   <parameter name="clockFrequency" value="50000000" />
   <parameter name="clockFrequencyKnown" value="true" />
@@ -534,9 +539,6 @@
   <parameter name="writeIRQThreshold" value="8" />
   <parameter name="avalonSpec" value="2.0" />
  </module>
- <module kind="LT24_Controller" version="1.0" enabled="1" name="lcd">
-  <parameter name="AUTO_CLOCK_CLOCK_RATE" value="100000000" />
- </module>
  <module
    kind="altera_avalon_pio"
    version="13.1"
@@ -725,7 +727,7 @@
   <parameter name="tightlyCoupledInstructionMaster2AddrWidth" value="1" />
   <parameter name="tightlyCoupledInstructionMaster3AddrWidth" value="1" />
   <parameter name="instSlaveMapParam"><![CDATA[<address-map><slave name='sdram.s1' start='0x2000000' end='0x4000000' /><slave name='cpu.jtag_debug_module' start='0x4000800' end='0x4001000' /></address-map>]]></parameter>
-  <parameter name="dataSlaveMapParam"><![CDATA[<address-map><slave name='sdram.s1' start='0x2000000' end='0x4000000' /><slave name='cpu.jtag_debug_module' start='0x4000800' end='0x4001000' /><slave name='touch_spi.spi_control_port' start='0x4001000' end='0x4001020' /><slave name='timer.s1' start='0x4001020' end='0x4001040' /><slave name='pic32_int2.s1' start='0x4001040' end='0x4001050' /><slave name='pic32_int1.s1' start='0x4001050' end='0x4001060' /><slave name='pic32.avalon_slave' start='0x4001060' end='0x4001070' /><slave name='touch_busy.s1' start='0x4001070' end='0x4001080' /><slave name='touch_pen_irq_n.s1' start='0x4001080' end='0x4001090' /><slave name='lcd_reset_n.s1' start='0x4001090' end='0x40010A0' /><slave name='pll.pll_slave' start='0x40010A0' end='0x40010B0' /><slave name='jtag_uart.avalon_jtag_slave' start='0x40010B0' end='0x40010B8' /><slave name='lcd.avalon_slave_0' start='0x40010B8' end='0x40010C0' /></address-map>]]></parameter>
+  <parameter name="dataSlaveMapParam"><![CDATA[<address-map><slave name='lcd.avalon_slave_0' start='0x4001B8' end='0x4001C0' /><slave name='sdram.s1' start='0x2000000' end='0x4000000' /><slave name='cpu.jtag_debug_module' start='0x4000800' end='0x4001000' /><slave name='touch_spi.spi_control_port' start='0x4001000' end='0x4001020' /><slave name='timer.s1' start='0x4001020' end='0x4001040' /><slave name='pic32_int2.s1' start='0x4001040' end='0x4001050' /><slave name='pic32_int1.s1' start='0x4001050' end='0x4001060' /><slave name='pic32.avalon_slave' start='0x4001060' end='0x4001070' /><slave name='touch_busy.s1' start='0x4001070' end='0x4001080' /><slave name='touch_pen_irq_n.s1' start='0x4001080' end='0x4001090' /><slave name='lcd_reset_n.s1' start='0x4001090' end='0x40010A0' /><slave name='pll.pll_slave' start='0x40010A0' end='0x40010B0' /><slave name='jtag_uart.avalon_jtag_slave' start='0x40010B0' end='0x40010B8' /></address-map>]]></parameter>
   <parameter name="clockFrequency" value="100000000" />
   <parameter name="deviceFamilyName" value="Cyclone IV E" />
   <parameter name="internalIrqMaskSystemInfo" value="31" />
@@ -771,6 +773,9 @@
   <parameter name="width" value="1" />
   <parameter name="clockRate" value="100000000" />
  </module>
+ <module kind="LT24_Controller" version="1.0" enabled="1" name="lcd">
+  <parameter name="AUTO_CLOCK_CLOCK_RATE" value="100000000" />
+ </module>
  <connection
    kind="reset"
    version="13.1"
@@ -789,8 +794,6 @@
    end="pll.inclk_interface" />
  <connection kind="clock" version="13.1" start="pll.c0" end="jtag_uart.clk" />
  <connection kind="clock" version="13.1" start="pll.c0" end="sdram.clk" />
- <connection kind="reset" version="13.1" start="clk_0.clk_reset" end="lcd.reset" />
- <connection kind="clock" version="13.1" start="pll.c0" end="lcd.clock" />
  <connection
    kind="reset"
    version="13.1"
@@ -849,15 +852,6 @@
  <connection kind="avalon" version="13.1" start="cpu.data_master" end="sdram.s1">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x02000000" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="13.1"
-   start="cpu.data_master"
-   end="lcd.avalon_slave_0">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x040010b8" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -982,6 +976,17 @@
    start="cpu.d_irq"
    end="pic32_int2.irq">
   <parameter name="irqNumber" value="4" />
+ </connection>
+ <connection kind="clock" version="13.1" start="pll.c0" end="lcd.clock" />
+ <connection kind="reset" version="13.1" start="clk_0.clk_reset" end="lcd.reset" />
+ <connection
+   kind="avalon"
+   version="13.1"
+   start="cpu.data_master"
+   end="lcd.avalon_slave_0">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x004001b8" />
+  <parameter name="defaultConnection" value="false" />
  </connection>
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="1" />

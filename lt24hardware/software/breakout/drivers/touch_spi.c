@@ -1,24 +1,16 @@
-#include "touch_spi.h"
+#include <system.h>
 #include <altera_avalon_spi.h>
-//#include "terasic_includes.h"
-#include "alt_video_display.h"
+#include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/alt_irq.h>
 #include "sys/alt_alarm.h"
 #include "altera_avalon_pio_regs.h"
 
-// debug config
-//#define DEBUG_TOUCH_PANEL
+#include "touch_spi.h"
 
-
-#ifdef DEBUG_TOUCH_PANEL
-    #define DEBUG_OUT(format, arg...) printf(format, ## arg);
-#else
-    #define DEBUG_OUT(format, arg...)
-#endif
-
-////////////// configuration //////////////
-#define X_RES   SCREEN_WIDTH
-#define Y_RES   SCREEN_HEIGHT
+#define ALT_ENHANCED_INTERRUPT_API_PRESENT
 
 
 // internal data structure
@@ -45,14 +37,8 @@ typedef struct{
 }TERASIC_TOUCH_PANEL;
 
 // prototype of internal function
-//static TOUCH_PANEL_CONTENT Touch;
-#ifdef ALT_ENHANCED_INTERRUPT_API_PRESENT
 void touch_isr(void* context);
-#else
-void touch_isr(void* context, alt_u32 id);
-#endif
 void touch_get_xy(TERASIC_TOUCH_PANEL *p);
-//void touch_clear_quque(TERASIC_TOUCH_PANEL *p);
 void touch_xy_transform(int *x, int *y);
 alt_u32 touch_alarm_callback(void *context);
 void touch_enable_penirq(TERASIC_TOUCH_PANEL *p);
@@ -70,61 +56,40 @@ TOUCH_HANDLE Touch_Init(const alt_u32 spi_base, const alt_u32 penirq_base, const
     if (!p)
         return p;
 
-    
-    //
-    memset(p, 0, sizeof(TERASIC_TOUCH_PANEL));
+   // memset(p, 0, sizeof(TERASIC_TOUCH_PANEL));
     p->spi_base = spi_base;
     p->penirq_base = penirq_base;
     p->irq_mask = 0x01;  // 1-pin
     p->penirq_irq = penirq_irq;
     p->alarm_dur = alt_ticks_per_second()/SAMPLE_RATE;
-    
-    printf("lol : %u\n", alt_ticks_per_second());
 
     // enalbe penirq_n interrupt (P1=1, P1=0)
     touch_enable_penirq(p);    
     
-
     // enable interrupt, 1-pin
     IOWR_ALTERA_AVALON_PIO_IRQ_MASK(p->penirq_base, p->irq_mask); 
     // Reset the edge capture register
     IOWR_ALTERA_AVALON_PIO_EDGE_CAP(p->penirq_base,0);
     // register ISR
     // register callback function
-
-#ifdef ALT_ENHANCED_INTERRUPT_API_PRESENT
-  if ((alt_ic_isr_register(TOUCH_PANEL_PEN_IRQ_N_IRQ_INTERRUPT_CONTROLLER_ID,
-		                   p->penirq_irq,
-		                   touch_isr,
-		                   (void *)p,
-		                   NULL
-		                   ) != 0)){
- #else
-  if ((alt_irq_register(p->penirq_irq, (void *)p, touch_isr) != 0)){
- #endif
-        DEBUG_OUT(("[TOUCH]register IRQ fail\n"));
+    if ((alt_ic_isr_register(TOUCH_PEN_IRQ_N_IRQ_INTERRUPT_CONTROLLER_ID, p->penirq_irq,
+    		touch_isr, (void *)p, NULL) != 0)){
         bSuccess = FALSE;
-    }else{        
-        DEBUG_OUT(("[TOUCH]register IRQ success\n"));
     }
 
     if (bSuccess){    
         if (alt_alarm_start(&p->alarm, p->alarm_dur, touch_alarm_callback, p) == 0){
-            DEBUG_OUT(("[TOUCH]alarm start success\n"));
         }else{
-            DEBUG_OUT(("[TOUCH]alarm start fail\n"));
             bSuccess = FALSE;
         }
     }
-    
+
     if (!bSuccess && p){
         free(p);
         p = NULL;
-    }        
-                
-    return p;        
-    
+    }
 
+    return p;
 }
 
 // uninit touch panel
@@ -167,7 +132,6 @@ int Touch_GetXY(TOUCH_HANDLE pHandle, int *x, int *y){
     // translate
     touch_xy_transform(x, y);
 
-    DEBUG_OUT("[TOUCH] x=%d, y=%d\n", *x,*y);
 //    touch_clear_input(p);
 //    touch_empty_fifo(p);
     p->next_active_time = alt_nticks() + ACTIVE_DELAY_TIME;
@@ -178,48 +142,19 @@ int Touch_GetXY(TOUCH_HANDLE pHandle, int *x, int *y){
 
 
 // penirq_n ISR
-#ifdef ALT_ENHANCED_INTERRUPT_API_PRESENT
 void touch_isr(void* context){
-#else
-void touch_isr(void* context, alt_u32 id){
-#endif
     alt_u8 mask;
     TERASIC_TOUCH_PANEL *p = (TERASIC_TOUCH_PANEL *)context;
 
-
-    /*
-#ifdef ALT_ENHANCED_INTERRUPT_API_PRESENT
-    alt_ic_irq_disable(TOUCH_PANEL_PEN_IRQ_N_IRQ_INTERRUPT_CONTROLLER_ID,TOUCH_PANEL_PEN_IRQ_N_IRQ);?????????????????????????????????????????????????????????
-#else
-    alt_irq_disable(id);
-#endif
-*/
     // get the edge capture mask
     mask = IORD_ALTERA_AVALON_PIO_EDGE_CAP(p->penirq_base);
     //if ((mask & Touch.irq_mask) == 0)  // 1-pin
     //    return;
-    DEBUG_OUT("Touched!!\n");
-    usleep(1000);
-#if 0
-    //Touch.pen_pressed = touch_is_pen_pressed();
-    if (touch_is_pen_pressed()){
-        Touch.last_active_time = alt_nticks();
-        touch_get_xy();
-    }else{ 
-       // touch_empty_fifo();
-    }
-    IOWR(PIO_RED_LED_BASE, 0, Touch.pen_pressed);
-#endif                    
+    usleep(2000);
     
     // Reset the edge capture register
     IOWR_ALTERA_AVALON_PIO_EDGE_CAP(p->penirq_base,0);    
- /*
-#ifdef ALT_ENHANCED_INTERRUPT_API_PRESENT
-    alt_ic_irq_enable(TOUCH_PANEL_PEN_IRQ_N_IRQ_INTERRUPT_CONTROLLER_ID,TOUCH_PANEL_PEN_IRQ_N_IRQ); ????????????????????????????????????????????????????????????
-#else
-    alt_irq_enable(id);
-#endif
-*/
+
 }
 
 void touch_empty_fifo(TERASIC_TOUCH_PANEL *p){
@@ -259,20 +194,16 @@ void touch_get_xy(TERASIC_TOUCH_PANEL *p){
     const alt_u8 CommandGetY = 0xD2;
     alt_u16 ResponseX, ResponseY;
     alt_u8 high_byte, low_byte;
-    
-       
-    //DEBUG_OUT(("[TOUCH] get x/y\n"));
 
     // x
     result = alt_avalon_spi_command(p->spi_base, 0, sizeof(CommandGetX), &CommandGetX, 0, 0, ALT_AVALON_SPI_COMMAND_MERGE);
     result = alt_avalon_spi_command(p->spi_base, 0, 0, 0, sizeof(high_byte), (alt_u8*)&high_byte, ALT_AVALON_SPI_COMMAND_MERGE);
     if (result != sizeof(high_byte)){
-        DEBUG_OUT(("[TOUCH] failed to get x\n"));
+
         return;
     }          
     result = alt_avalon_spi_command(p->spi_base, 0, 0, 0, sizeof(low_byte), (alt_u8*)&low_byte, ALT_AVALON_SPI_COMMAND_TOGGLE_SS_N);
     if (result != sizeof(low_byte)){
-        DEBUG_OUT(("[TOUCH] failed to get x\n"));
         return;
     }  
     ResponseX = (high_byte << 8) | low_byte;        
@@ -281,12 +212,10 @@ void touch_get_xy(TERASIC_TOUCH_PANEL *p){
     result = alt_avalon_spi_command(p->spi_base, 0, sizeof(CommandGetY), &CommandGetY, 0, 0, ALT_AVALON_SPI_COMMAND_MERGE);
     result = alt_avalon_spi_command(p->spi_base, 0, 0, 0, sizeof(high_byte), (alt_u8*)&high_byte, ALT_AVALON_SPI_COMMAND_MERGE);
     if (result != sizeof(high_byte)){
-        DEBUG_OUT(("[TOUCH] failed to get x\n"));
         return;
     }          
     result = alt_avalon_spi_command(p->spi_base, 0, 0, 0, sizeof(low_byte), (alt_u8*)&low_byte, ALT_AVALON_SPI_COMMAND_TOGGLE_SS_N);
     if (result != sizeof(low_byte)){
-        DEBUG_OUT(("[TOUCH] failed to get x\n"));
         return;
     }  
     ResponseY = (high_byte << 8) | low_byte;        
@@ -305,7 +234,6 @@ void touch_get_xy(TERASIC_TOUCH_PANEL *p){
         p->fifo_rear %= FIFO_SIZE;        
         
     }
-    DEBUG_OUT("[ ADC] x=%d, y=%d\n", x,y);
 
     // push now
     p->fifo_x[p->fifo_front] = x;
@@ -319,17 +247,12 @@ void touch_get_xy(TERASIC_TOUCH_PANEL *p){
 alt_u32 touch_alarm_callback(void *context){
     TERASIC_TOUCH_PANEL *p = (TERASIC_TOUCH_PANEL *)context;
     
-    if (touch_is_pen_pressed(p)){//Touch.pen_pressed){
+    if (touch_is_pen_pressed(p)){
         if (alt_nticks() > p->next_active_time)
             touch_get_xy(p);
-      //  p->last_active_time = alt_nticks(); 
     }else{
-       // touch_empty_fifo(p);
-        //if ((alt_nticks() - Touch.last_active_time) > alt_ticks_per_second()/10){
          touch_enable_penirq(p);
          touch_clear_input(p);
-          //  p->last_active_time = alt_nticks(); 
-        //}            
     }        
     return p->alarm_dur;
 }
@@ -344,8 +267,6 @@ void touch_xy_transform(int *x, int *y){
    // xx = 4096 -1 - xx;
     xx = xx * X_RES / 4096;
 
-   // yy = 4096 -1 - yy;
-
     // special calibrate for LT24
     if (yy > (4096-y_ignore))
     	yy = 4096-y_ignore;
@@ -358,10 +279,6 @@ void touch_xy_transform(int *x, int *y){
     *y = yy;    
     
 }
-
-
-
-
 
 int IsPtInRect(POINT *pt, RECT *rc){
     int bYes = FALSE;

@@ -154,12 +154,12 @@ C_SRCS += mpack/mpack-writer.c
 C_SRCS += tasks/console.c
 C_SRCS += tasks/rpc.c
 C_SRCS += drivers/ILI9341.c
-C_SRCS += drivers/simple_text.c
-C_SRCS += drivers/simple_graphics.c
-C_SRCS += drivers/tahomabold_20.c
-C_SRCS += drivers/tahomabold_32.c
 C_SRCS += drivers/touch_spi.c
 C_SRCS += tasks/player2.c
+C_SRCS += util/simple_graphics.c
+C_SRCS += util/simple_text.c
+C_SRCS += util/tahomabold_20.c
+C_SRCS += util/tahomabold_32.c
 CXX_SRCS :=
 ASM_SRCS :=
 

@@ -2,7 +2,6 @@
 #define __SIMPLE_GRAPHICS_H__
 
 // JCJB:  Adding inclusion of the graphics driver header
-#include "alt_video_display.h"
 //#include "vip_fr.h"
 #include "fonts.h"  // modify this file to add/remove fonts
 #include "ILI9341.h"

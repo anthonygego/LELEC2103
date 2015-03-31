@@ -8,23 +8,16 @@
  *           Altera Corporation                                        *
  *           Apr 2006                                                  *
  **********************************************************************/
-//#include "terasic_includes.h"
+
 #include <string.h>
 #include <io.h>
-#include "alt_video_display.h"
 #include "simple_graphics.h"
 #include "sys/alt_alarm.h"
 #include "sys/alt_cache.h"
 #include "system.h"
 
-#define LT24
-
-#ifdef LT24
 #include "ILI9341.h"
-#endif
 
-
-// richard add
 void vid_clean_screen(lcd_info *p,alt_video_display* display, int color){
     vid_paint_block(p,0 , 0,display->width, display->height, color, display);
 }
@@ -40,31 +33,10 @@ void vid_clean_screen(lcd_info *p,alt_video_display* display, int color){
 ******************************************************************/
 __inline__ void vid_draw_line(lcd_info *p,int horiz_start, int vert_start, int horiz_end, int vert_end, int width, int color, alt_video_display* display)
 {
- 
-  if( vert_start == vert_end )
-  {
-//    c2h_draw_horiz_line( (unsigned short)horiz_start, 
-//                         (unsigned short)horiz_end,  
-//                         (unsigned short)vert_start,
-//                         color,
-//                         display->buffer_ptrs[display->buffer_being_written]->buffer);
-
-    vid_draw_horiz_line(p, (unsigned short)horiz_start,
-                         (unsigned short)horiz_end, 
-                         (unsigned short)vert_start,
-                         color,
-                         display);
-  }
-  else
-  {
-    vid_draw_sloped_line( (unsigned short)horiz_start, 
-                          (unsigned short)vert_start, 
-                          (unsigned short)horiz_end, 
-                          (unsigned short)vert_end, 
-                          (unsigned short)width, 
-                          color,p,
-                          display );
-  }
+	if( vert_start == vert_end )
+		vid_draw_horiz_line(p, (unsigned short)horiz_start, (unsigned short)horiz_end, (unsigned short)vert_start,color,display);
+	else
+		vid_draw_sloped_line( (unsigned short)horiz_start, (unsigned short)vert_start, (unsigned short)horiz_end, (unsigned short)vert_end, (unsigned short)width, color,p,display );
 }
 
 
@@ -170,38 +142,6 @@ int vid_scroll_string(lcd_info *p,vid_text_scroll_struct* scroll, alt_video_disp
   return(0);
 }
 
-
-/******************************************************************
-*  Function: vid_move_block
-*
-*  Purpose: Moves a block around the screen, backfilling with 
-*           the backfill_color parameter.
-*
-******************************************************************/
-
-int vid_move_block(lcd_info *p,int xbegin, int ybegin, int xend, int yend, int x_distance, int y_distance, int backfill_color, alt_video_display* display)
-{
-  int read_x, read_y, write_x, write_y;
-  short temp_pixel;
-  
-  if(x_distance <= 0 && y_distance <= 0) {  
-    //Move by rows because they are contiguous in memory (could help speed if in SDRAM)
-    for (read_y = ybegin; read_y < yend; read_y++) {
-      write_y = read_y + y_distance;
-      for(read_x = xbegin; read_x < xend; read_x++) {
-        write_x = read_x + x_distance;
-        temp_pixel = vid_get_pixel(read_x, read_y, display);
-        vid_set_pixel(p,write_x, write_y, temp_pixel, display);
-        if(read_x >= xend + x_distance || read_y >= yend + y_distance) 
-        {
-	        vid_set_pixel(p,read_x, read_y, backfill_color, display);
-        }
-      }
-    }
-  }
-  return (0);
-}
-
 /******************************************************************
 *  Function: vid_print_string
 *
@@ -304,62 +244,9 @@ int vid_print_char (lcd_info *p,int horiz_offset, int vert_offset, int color, ch
 
 void vid_set_pixel(lcd_info *p,int horiz, int vert, unsigned int color, alt_video_display* display)
 {
-#ifdef LT24
-	alt_u16 color16;
-	color16=color;  // on encode sur 16bit et voila ... nah
-
-	// encode to RGB  5 6 5
-/*	color16 = (color & 0xFF) >> 3; // blue
-	color16 |= (color & 0xFC00) >> 5; // green
-	color16 |= (color & 0xF80000) >> 8; // blue */
-	lcd_draw_point(p,horiz, vert, color16);
-
-#else
-  int addr;
-  
-  if( display->color_depth == 32 )
-  {
-//  	addr = ( ( (int)(display->buffer_ptrs[display->buffer_being_written]) )+ (vert * (display->width * 4)) + horiz * 4);
-    addr = ( ( (int)(VIPFR_GetDrawFrame(display)) )+ (vert * (display->width * 4)) + horiz * 4);
-		IOWR_32DIRECT( addr, 0, (unsigned int)(color));
-  }
-  
-  else if( display->color_depth == 24 )
-  {
-  	addr = ( ( (int)(VIPFR_GetDrawFrame(display)) )+ (vert * (display->width * 3)) + horiz * 3);
-		IOWR_8DIRECT( addr, 0, (unsigned char)(color));
- 		IOWR_8DIRECT( addr+1, 0, (unsigned char)(color >> 8));
-    IOWR_8DIRECT( addr+2, 0, (unsigned char)(color >> 16));
-  }
-  
-  else if( display->color_depth == 16 )
-  {
-  	addr = ( ( (int)(VIPFR_GetDrawFrame(display)) )+ (vert * (display->width * 2)) + horiz * 2);
-  	IOWR_16DIRECT( addr, 0, (int)(color));
-	}
-#endif
+	lcd_draw_point(p,horiz, vert, color);
 
 }
-
-/******************************************************************
-*  Function: vid_get_pixel
-*
-*  Purpose: Reads the color of the pixel at the given coordinates
-*
-******************************************************************/
-
-short vid_get_pixel(int horiz, int vert, alt_video_display* display)
-{
-#ifdef LT24
-	printf("vid_get_pixel is not implemented\r\n");
-#else
-  int addr;
-  
-  addr = ( ( (int)(VIPFR_GetDrawFrame(display)) )+ (vert * (display->width * 2)) + horiz * 2);
-  return(IORD_16DIRECT(addr, 0));
-#endif
-}
-
 
 /******************************************************************
 *  Function: vid_paint_block
@@ -375,60 +262,12 @@ short vid_get_pixel(int horiz, int vert, alt_video_display* display)
 ******************************************************************/
 void vid_paint_block (lcd_info *p,int Hstart,int Vstart, int Hend, int Vend, int color, alt_video_display* display)
 {
-#ifdef LT24
 	int x,y;
 	for(y=Vstart;y<Vend;y++){
 		for(x=Hstart;x<Hend;x++){
 			vid_set_pixel(p,x, y, color, display);
 		}
 	}
-#else
-  int i;
-  unsigned int addr; // richard add unsigned
-  int bytes_per_line, bytes_per_pixel;
-  char* line;
-  
-  bytes_per_pixel = (display->color_depth / 8);
-  bytes_per_line = ((Hend - Hstart) * bytes_per_pixel);
-
-  line = malloc(bytes_per_line + 12);
-
-	if(display->color_depth == 16)
-	{
-    for (i = 0; i < bytes_per_line; i+=2) 
-    {
-      *(line + i) = (unsigned char)color;
-      *(line + i + 1) = (unsigned char)(color >> 8);
-    }
-  }
-  else if(display->color_depth == 24)
-  { 
-    for (i = 0; i < bytes_per_line; i+=3) 
-    {
-      *(line + i) = (unsigned char)color;
-      *(line + i + 1) = (unsigned char)(color >> 8);
-      *(line + i + 2) = (unsigned char)(color >> 16);
-    }
-  }
-  else if(display->color_depth == 32)
-  { 
-    for (i = 0; i < bytes_per_line; i+=4) 
-    {
-      // Does the right hand side of this assignment determine the size?
-      *(int*)(line + i) = (unsigned int)color;
-    }
-  }
-  
-  /* Initial Address */
-  addr = (int)(VIPFR_GetDrawFrame(display)) + ((Vstart * (display->width * bytes_per_pixel)) + (Hstart * bytes_per_pixel));
-  
-  for (i = Vstart; i < Vend; i++)
-  {
-    memcpy( (void*)addr, line, bytes_per_line );
-    addr += (display->width * bytes_per_pixel);
-  }
-  free (line);
-#endif
 }
 
 
@@ -441,62 +280,10 @@ void vid_paint_block (lcd_info *p,int Hstart,int Vstart, int Hend, int Vend, int
 ******************************************************************/
 void vid_draw_horiz_line (lcd_info *p,short Hstart, short Hend, int V, int color, alt_video_display* display)
 {
-#ifdef LT24
 	int x;
 	for(x=Hstart;x<Hend;x++){
 		vid_set_pixel(p,x, V, color, display);
 	}
-#else
-  int i;
-  int addr;
-  int bytes_per_line;
-
-  char *fast_buffer = malloc(1024 * 3);
-
-  if( Hstart > Hend )
-  {
-    short temp = Hstart;
-    Hstart = Hend;
-    Hend = temp;
-  }
-  
-  if(display->color_depth == 32)
-  { 
-    addr = (int)(VIPFR_GetDrawFrame(display)) + ((V * (display->width * 4)) + (Hstart * 4));
-    bytes_per_line = ((Hend - Hstart) * 4);
-    for (i = 0; i < bytes_per_line; i+=4) 
-    {
-      // Does the right hand side of this assignment determine the size?
-      *(int*)(fast_buffer + i) = (unsigned int)color;
-    }
-    memcpy( (void*)addr, fast_buffer, bytes_per_line );
-  }
-  if(display->color_depth == 24)
-  { 
-    addr = (int)(VIPFR_GetDrawFrame(display)) + ((V * (display->width * 3)) + (Hstart * 3));
-    bytes_per_line = ((Hend - Hstart) * 3);
-    for (i = 0; i < bytes_per_line; i+=3) 
-    {
-      *(fast_buffer + i) = (unsigned char)color;
-      *(fast_buffer + i + 1) = (unsigned char)(color >> 8);
-      *(fast_buffer + i + 2) = (unsigned char)(color >> 16);
-    }
-    memcpy( (void*)addr, fast_buffer, bytes_per_line );
-  }
-  else if(display->color_depth == 16)
-  {
-    addr = (int)(VIPFR_GetDrawFrame(display)) + ((V * (display->width * 2)) + (Hstart * 2));
-    bytes_per_line = ((Hend - Hstart) * 2);
-    for (i = 0; i < bytes_per_line; i+=2) 
-    {
-      *(fast_buffer + i) = (unsigned char)color;
-      *(fast_buffer + i + 1) = (unsigned char)(color >> 8);
-    }
-    memcpy( (void*)addr, fast_buffer, bytes_per_line );
-  }
-  free(fast_buffer);
-#endif
-
 }
 
 
@@ -551,75 +338,6 @@ int vid_color_convert16_24(unsigned short color16, char* color24)
 	*(color24 + 2) = (color16 & 0x1F);
 	
 	return (0);
-}
-
-/******************************************************************
-*  Function: vid_copy_line_to_frame_buffer
-*
-*  Purpose: Copies a scanline from memory to the frame buffer at
-*           the specified coordinates.  Converts color depth if
-*           necessary.
-*
-******************************************************************/
-int vid_copy_line_to_frame_buffer( int x, int y, char* buffer, int num_pixels, int source_color_depth, alt_video_display* display )
-{
-#ifdef LT24
-	printf("vid_copy_line_to_frame_buffer is not implemented!\r\n");
-#else
-
-  unsigned short* temp_line;
-  int index_24 = 0;
-  int index_16 = 0;
-  unsigned int dest_addr;
-  unsigned int bytes_in_line;
-  
-  dest_addr = (int)(VIPFR_GetDrawFrame(display)) + 
-    ((y * (display->width * (display->bytes_per_pixel))) + 
-    (x * (display->bytes_per_pixel)));
-  
-  bytes_in_line = num_pixels * display->bytes_per_pixel;
-  
-  if(source_color_depth == 24)
-  {
-    if(display->color_depth == 16)
-    {
-      temp_line = malloc(bytes_in_line);
-      while(index_24 < bytes_in_line)
-      {
-        *(temp_line + index_16) = vid_color_convert24_16_m((char*)(buffer + index_24));
-        index_16++;
-        index_24+=3;
-      }
-      memcpy( (void*)dest_addr, (void*)temp_line, bytes_in_line );
-      free(temp_line);
-    }
-    else if(display->color_depth == 24)
-    {
-      memcpy( (void*)dest_addr, (void*)buffer, bytes_in_line );
-    }
-  }
-  else if(source_color_depth == 16)
-  {
-    if(display->color_depth == 24)
-    {
-      temp_line = malloc(bytes_in_line);
-      while(index_16 < num_pixels )
-      {
-        vid_color_convert16_24((short)*(buffer + index_16), (char*)(temp_line + index_24));
-        index_16++;
-        index_24+=3;
-      }
-      memcpy( (void*)dest_addr, (void*)temp_line, bytes_in_line );
-      free(temp_line);
-      
-    }
-    else if(display->color_depth == 16)
-    {
-      memcpy( (void*)dest_addr, (void*)buffer, bytes_in_line );
-    }
-  }
-  return(0);
-#endif
 }
 
 /******************************************************************

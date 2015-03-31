@@ -9,7 +9,6 @@
 #include "rpc.h"
 #include "mpack.h"
 #include "breakout.h"
-#include "alt_video_display.h"
 #include "simple_graphics.h"
 #include "touch_spi.h"
 
@@ -17,7 +16,6 @@
 void rpc_task(void* pdata)
 {
 	game_state * game = (game_state *) pdata;
-
 
 	while (1)
 	{
@@ -28,7 +26,7 @@ void rpc_task(void* pdata)
 		if(pic32_receive(game->pic32_handle, &msg, &len, 1))
 		{
 			printf("\n---\nReceived RPC message of size %d ! \n", len);
-			// parse a data buffer into a node tree
+			/*// parse a data buffer into a node tree
 			mpack_tree_t tree;
 			mpack_tree_init(&tree, msg, len);
 			mpack_node_t* root = mpack_tree_root(&tree);
@@ -42,8 +40,8 @@ void rpc_task(void* pdata)
 
 			printf("Read values : %d - %d\n", compact, schema);
 			free(msg);
-			printf("---\n");
+			printf("---\n");*/
 		}
-		OSTimeDlyHMSM(0, 0, 0, 20);
+		OSTimeDlyHMSM(0, 0, 0, 100);
 	}
 }

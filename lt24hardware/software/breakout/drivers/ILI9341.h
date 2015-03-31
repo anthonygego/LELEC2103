@@ -3,6 +3,24 @@
 
 #include <alt_types.h>
 
+////////////// configuration //////////////
+#define X_RES   SCREEN_WIDTH
+#define Y_RES   SCREEN_HEIGHT
+
+#define SCREEN_WIDTH	240
+#define SCREEN_HEIGHT	320
+
+typedef struct{
+
+
+    // for altera vip library
+    int color_depth;
+    int width;
+    int height;
+    int bytes_per_pixel;
+    int interlace;
+} alt_video_display;
+
 typedef struct {
     alt_u32  BASE;
     alt_u32  RESET_N_BASE;

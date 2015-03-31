@@ -6,7 +6,12 @@ typedef void *TOUCH_HANDLE;
 #define TRUE 1
 #define FALSE 0
 
+////////////// configuration //////////////
+#define X_RES   SCREEN_WIDTH
+#define Y_RES   SCREEN_HEIGHT
 
+#define SCREEN_WIDTH	240
+#define SCREEN_HEIGHT	320
 
 TOUCH_HANDLE Touch_Init(const alt_u32 spi_base, const alt_u32 penirq_base, const alt_u32 penirq_irq);
 void Touch_UnInit(TOUCH_HANDLE pHandle);
