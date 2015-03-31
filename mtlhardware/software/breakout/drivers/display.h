@@ -52,7 +52,7 @@ void          display_move_sprite(display_info *p, sprite *s, alt_u8 end_frame, 
 void          display_remove_sprite(display_info *p, sprite *s, alt_u8 end_frame);
 void          display_add_sprite(display_info *p, sprite *s, alt_u8 end_frame);
 void          display_push_desc(display_info* p, alt_sgdma_descriptor * desc, alt_u8 frame, alt_u8 end_frame);
-alt_sgdma_descriptor * display_imgcpy_desc(display_info *p, alt_u8 frame, void * img, int x, int y, int c_width, int c_height, int t_width, int t_height, alt_u32 alpha);
+alt_sgdma_descriptor * display_imgcpy_desc(display_info *p, alt_u8 frame, sprite * s, void * img, int t_width, int t_height);
 alt_sgdma_descriptor * display_texcpy_desc(display_info *p, alt_u8 frame, void * tex, int x, int y, int c_width, int c_height, int t_size);
 
 #endif /* DISPLAY_H_ */

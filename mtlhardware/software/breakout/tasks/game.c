@@ -16,19 +16,16 @@
 
 alt_u8 sprite_collision(alt_u16 x1, alt_u16 y1, alt_u16 w1, alt_u16 h1, alt_u32* base1, alt_u16 x2, alt_u16 y2, alt_u16 w2, alt_u16 h2, alt_u32* base2)
 {
+	alt_u8 result = 0;
 	if(!((x1 + w1 < x2) || (x2 + w2 < x1) || (y1 + h1 < y2) || (y2 + h2 < y1)))
 	{
-		if(!(x1 + w1 < x2))
-			return 1;
-		else if(!(x2 + w2 < x1))
-			return 2;
-		else if(!(y1 + h1 < y2))
-			return 3;
-		else
-			return 4;
+		if((x1 < x2 && x2 < x1 + w1) || (x1 < x2+w2 && x2+w2 < x1+w1))
+			result = 1;
+		else if((y1 < y2 && y2 < y1 + h1) || (y1 < y2+h2 && y2+h2 < y1+h1))
+			result = 2;
 	}
-	else
-		return 0;
+
+	return result;
 }
 
 void game_event_pop(game_struct * g)
@@ -144,12 +141,15 @@ void game_task(void* pdata)
 					if(game->balls[0].enabled + game->balls[1].enabled < 2)
 					{
 						game->state = NOT_MOVING;
-						display_move_sprite(display, game->balls[0].s, 1, game->paddle->x+100,game->paddle->y-20);
+						display_move_sprite(display, game->balls[0].s, 1, game->paddle->x+game->paddle->width/2, game->paddle->y-20);
 
-						if(--(game->lives) == 0)
+						if(--(game->lives) <= 0)
+						{
 							game->state = NOGAME;
-
-						printf("Game over ! Remaining lives : %d\n", game->lives);
+							printf("Game over (score :%d) !\n", game->score);
+						}
+						else
+							printf("Lost ball ! Remaining lives : %d\n", game->lives);
 						break;
 					}
 					else
@@ -160,9 +160,9 @@ void game_task(void* pdata)
 					}
 				}
 
-				alt_u8 brick_collided = 0;
+				alt_u8 collision = 0;
 				alt_u16 j;
-				for(j=0; j<NBR_BRICKS && !brick_collided; j++)
+				for(j=0; j<NBR_BRICKS && !collision; j++)
 				{
 
 					if(game->bricks[j].enabled)
@@ -173,50 +173,30 @@ void game_task(void* pdata)
 						if(collision_from)
 						{
 							// Collision with brick
-							brick_collided = 1;
+							game->score += SCORE_UNIT;
+							collision = 1;
+
 							display_remove_sprite(display, game->bricks[j].s, 0);
+
 							if(game->bricks[j].value == 1)
 								game->bricks[j].enabled = 0;
-							else if(game->bricks[j].value == 2)
+							else
 							{
+								// Replace brick
 								sprite * new_sprite = sprite_init(game->bricks[j].s->x, game->bricks[j].s->y, game->bricks[j].s->width,
-										game->bricks[j].s->height, (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK0, 50, 0);
+										game->bricks[j].s->height, (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK0+(game->bricks[j].value-2)*TEXTURE_BRICK_SIZE, 50, 0);
 
 								free(game->bricks[j].s);
 								game->bricks[j].s = new_sprite;
-								game->bricks[j].value = 1;
-								display_add_sprite(display, game->bricks[j].s, 0);
-							}
-							else if(game->bricks[j].value == 3)
-							{
-								sprite * new_sprite = sprite_init(game->bricks[j].s->x, game->bricks[j].s->y, game->bricks[j].s->width,
-										game->bricks[j].s->height, (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK1, 50, 0);
-
-								free(game->bricks[j].s);
-								game->bricks[j].s = new_sprite;
-								game->bricks[j].value = 2;
-								display_add_sprite(display, game->bricks[j].s, 0);
-							}
-							else if(game->bricks[j].value == 4)
-							{
-								sprite * new_sprite = sprite_init(game->bricks[j].s->x, game->bricks[j].s->y, game->bricks[j].s->width,
-										game->bricks[j].s->height, (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK2, 50, 0);
-
-								free(game->bricks[j].s);
-								game->bricks[j].s = new_sprite;
-								game->bricks[j].value = 3;
+								game->bricks[j].value--;
 								display_add_sprite(display, game->bricks[j].s, 0);
 							}
 
 							// Compute new vector
-							if(collision_from == 1) // from left
-								game->balls[i].v.y = - game->balls[i].v.y;
-							else if(collision_from == 2) // from right
-								game->balls[i].v.y = - game->balls[i].v.y;
-							else if(collision_from == 3) // from bottom
+							if(collision_from == 1) // horizontal
 								game->balls[i].v.x = - game->balls[i].v.x;
-							else if(collision_from == 4) // from top
-								game->balls[i].v.x = - game->balls[i].v.x;
+							else // vertical
+								game->balls[i].v.y = - game->balls[i].v.y;
 						}
 					}
 				}
@@ -229,6 +209,9 @@ void game_task(void* pdata)
 			}
 
 			break;
+		//
+		// IF BALL IS NOT MOVING
+		//
 		case NOT_MOVING:
 			// If a double click is done, launch the ball(s)
 			if(mtc_get_status(game->periph.mtc_handle, &mtc_event, &mtc_touchnum, &mtc_x1, &mtc_y1, &mtc_x2, &mtc_y2))

@@ -6,64 +6,39 @@
 #include "queue.h"
 #include "breakout.h"
 
-void breakout_create_textures()
+void breakout_create_textures(display_info * display)
 {
 	int i,j;
+
+	for(i=0; i<480; i++)
+			for(j=0; j<800; j++)
+				display->frame_buffer[0][i][j] = 0xff0000 + ((i*255/480) << 8);
 
 	for(i=-10; i<10; i++)
 		for(j=-10; j<10;j++)
 			IOWR(TEXTURES_BASE+IMG_BALL, (i+10)*20+(j+10), ((i*i+j*j) <= 80) ? 0x0 : 0x2a2a2a);
 
-	for(i=0; i<100; i=i+4) {
-		IOWR(TEXTURES_BASE, TEXTURE_PADDLE+i, 0x0);
-		IOWR(TEXTURES_BASE, TEXTURE_PADDLE+i+1, 0x0);
-		IOWR(TEXTURES_BASE, TEXTURE_PADDLE+i+2, 0x0);
-		IOWR(TEXTURES_BASE, TEXTURE_PADDLE+i+3, 0xa0a0a0);
-	}
+	for(i=0; i<100; i++)
+		IOWR(TEXTURES_BASE, TEXTURE_PADDLE+i, (i*i/27)%2==0 ? 0x505050 : 0x000000);
 
-	for(i=0; i<50; i=i+3) {
-		IOWR(TEXTURES_BASE, TEXTURE_BRICK0+i, 0x009000);
-		IOWR(TEXTURES_BASE, TEXTURE_BRICK0+i+1, 0x009000);
-		IOWR(TEXTURES_BASE, TEXTURE_BRICK0+i+2, 0x005000);
-	}
+	for(i=0; i<50; i++)
+		IOWR(TEXTURES_BASE, TEXTURE_BRICK0+i, i%2==0 ? 0x005000 : 0x009000);
 
-	for(i=0; i<50; i=i+3) {
-		IOWR(TEXTURES_BASE, TEXTURE_BRICK1+i, 0x000090);
-		IOWR(TEXTURES_BASE, TEXTURE_BRICK1+i+1, 0x000090);
-		IOWR(TEXTURES_BASE, TEXTURE_BRICK1+i+2, 0x000050);
-	}
+	for(i=0; i<50; i++)
+		IOWR(TEXTURES_BASE, TEXTURE_BRICK1+i, i%2==0 ? 0x000050 : 0x000090);
 
-	for(i=0; i<50; i=i+3) {
-		IOWR(TEXTURES_BASE, TEXTURE_BRICK2+i, 0x900000);
-		IOWR(TEXTURES_BASE, TEXTURE_BRICK2+i+1, 0x900000);
-		IOWR(TEXTURES_BASE, TEXTURE_BRICK2+i+2, 0x500000);
-	}
+	for(i=0; i<50; i++)
+		IOWR(TEXTURES_BASE, TEXTURE_BRICK2+i, i%2==0 ? 0x500000 : 0x900000);
 
-	for(i=0; i<50; i=i+3) {
-		IOWR(TEXTURES_BASE, TEXTURE_BRICK3+i, 0x009090);
-		IOWR(TEXTURES_BASE, TEXTURE_BRICK3+i+1, 0x009090);
-		IOWR(TEXTURES_BASE, TEXTURE_BRICK3+i+2, 0x005050);
-	}
+	for(i=0; i<50; i++)
+		IOWR(TEXTURES_BASE, TEXTURE_BRICK3+i, i%2==0 ? 0x005050 : 0x009090);
 
 	for(i=0; i<50; i++)
 		IOWR(TEXTURES_BASE, TEXTURE_WALL+i, 0x4a4a4a);
 }
 
-void breakout_clear_screen(display_info * display)
+void breakout_uninit(game_struct * g)
 {
-	int i,j;
-
-	for(i=0; i<480; i++)
-		for(j=0; j<800; j++)
-			display->frame_buffer[0][i][j] = 0xff0000 + ((i*255/480) << 8);
-
-	for(i=0; i<480; i++)
-		for(j=0; j<800; j++)
-			display->frame_buffer[1][i][j] = 0;
-
-	for(i=0; i<480; i++)
-		for(j=0; j<800; j++)
-			display->frame_buffer[2][i][j] = 0;
 
 }
 
@@ -72,24 +47,27 @@ void breakout_init(game_struct * g, char * level)
 	display_info * display = g->periph.display_handle;
 
 	// Stop the game
-	g->state = NOGAME;
+	if(g->state != NOGAME)
+	{
+		g->state = NOGAME;
+		queue_delete(g->events_queue);
+		free(g->paddle);
 
-	// Clear screen and create textures
-	breakout_clear_screen(display);
+		int i;
+		for(i=0;i<3;i++)
+			free(g->walls[i]);
+	}
 
 	// Initialize bricks
 	int i, j;
 	for(i=0; i< 12; i++)
 	{
-		j = 0;
-		while(j < 14)
+		for(j=0; j < 14; level++)
 		{
-			char c = *level;
-
 			g->bricks[i*14+j].enabled = 1;
-			g->bricks[i*14+j].value = c-'0';
+			g->bricks[i*14+j].value = *level-'0';
 
-			switch(c)
+			switch(*level)
 			{
 			case '1':
 				g->bricks[i*14+j].s = sprite_init(45+j*50+j, 45+i*20+i, 50, 20, (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK0, 50, 0);
@@ -114,8 +92,6 @@ void breakout_init(game_struct * g, char * level)
 			default:
 				break;
 			}
-
-			level++;
 		}
 	}
 

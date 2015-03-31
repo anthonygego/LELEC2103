@@ -33,7 +33,6 @@ OS_STK      console_task_stk     [TASK_STACKSIZE];
 
 int main(void)
 {
-	breakout_create_textures();
 
 	// Initialize main structure
 	game_struct game;
@@ -50,6 +49,7 @@ int main(void)
 	// Initialize Accelerometer
 	game.periph.adxl345_handle = adxl345_init(ADXL345_BASE);
 
+	breakout_create_textures(game.periph.display_handle);
 	game.state = NOGAME;
 
 	// Create Graphics task

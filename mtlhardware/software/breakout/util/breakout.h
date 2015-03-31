@@ -8,20 +8,21 @@
 #include "display.h"
 #include "adxl345.h"
 
-#define IMG_BALL         0
-#define TEXTURE_WALL     400
-#define TEXTURE_PADDLE   450
-#define TEXTURE_BRICK0   550
-#define TEXTURE_BRICK1   600
-#define TEXTURE_BRICK2   650
-#define TEXTURE_BRICK3   700
+#define IMG_BALL           0
+#define TEXTURE_WALL       400
+#define TEXTURE_PADDLE     450
+#define TEXTURE_BRICK0     550
+#define TEXTURE_BRICK1     600
+#define TEXTURE_BRICK2     650
+#define TEXTURE_BRICK3     700
+#define TEXTURE_BRICK_SIZE 50
 
 
-#define BALL_WIDTH       20
-#define BALL_HEIGHT      20
-#define NBR_BRICKS       168
-#define SCORE_UNIT		 20
-#define EVENT_QUEUE_SIZE 16
+#define BALL_WIDTH         20
+#define BALL_HEIGHT        20
+#define NBR_BRICKS         168
+#define SCORE_UNIT		   20
+#define EVENT_QUEUE_SIZE   16
 
 typedef enum {
 	ADD_LIFE = 0,

@@ -37,6 +37,15 @@ void graphics_isr(void * context)
 	free((alt_sgdma_descriptor *) display->desc_current);
 	display->desc_current = 0;
 
+	alt_u8 frame = !(display->displayed_frame);
+	OSSemPend(display->desc_queue[frame]->sem, 0, &err);
+	if(!queue_is_empty(display->desc_queue[frame]))
+	{
+		alt_sgdma_descriptor * desc = (alt_sgdma_descriptor *) queue_pop(display->desc_queue[frame]);
+		display->desc_current = (alt_u32) desc;
+		alt_avalon_sgdma_do_async_transfer(sgdma, desc);
+	}
+	OSSemPost(display->desc_queue[frame]->sem);
 }
 
 void graphics_task(void* pdata)
@@ -52,6 +61,7 @@ void graphics_task(void* pdata)
 			alt_u8 err;
 
 			// Send a descriptor list to SGDMA if queue is not empty
+
 			alt_u8 frame = !(display->displayed_frame);
 			OSSemPend(display->desc_queue[frame]->sem, 0, &err);
 			if(!queue_is_empty(display->desc_queue[frame]))
