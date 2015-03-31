@@ -29,7 +29,7 @@
 #define DISPLAY_MAX_HEIGHT			  480
 #define DISPLAY_MAX_WIDTH			  800
 
-#define DISPLAY_DESCS_QUEUE_SIZE      1024
+#define DISPLAY_DESCS_QUEUE_SIZE      256
 
 typedef struct
 {

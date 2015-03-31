@@ -35,13 +35,14 @@ void game_event_pop(game_struct * g)
 {
 	alt_u8 err;
 
-	//printf("need mutex\n");
 	// Treat an event if queue is not empty
 	OSSemPend(g->events_queue->sem, 0, &err);
-	//printf("have mutex\n");
+	//
 	if(!queue_is_empty(g->events_queue))
 	{
+
 		game_event event = queue_pop(g->events_queue);
+		printf("Popping event : %d\n", event);
 		switch(event)
 		{
 		case ADD_LIFE:
@@ -56,7 +57,7 @@ void game_event_pop(game_struct * g)
 			display_add_sprite(g->periph.display_handle, g->paddle, 0);
 			break;
 		case ADD_BALL:
-			g->balls[1].enabled = 1;
+			g->balls[1].enabled = 0;
 			break;
 		case SPEED_DOWN:
 			g->speed = (g->speed > 10) ? g->speed - 5 : 5;
