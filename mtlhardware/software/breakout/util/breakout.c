@@ -3,6 +3,7 @@
 #include <includes.h>
 #include <sys/alt_cache.h>
 
+#include "queue.h"
 #include "breakout.h"
 
 void breakout_create_textures()
@@ -75,18 +76,16 @@ void breakout_init(game_struct * g, char * level)
 
 	// Clear screen and create textures
 	breakout_clear_screen(display);
-	breakout_create_textures();
 
 	// Initialize bricks
-	int i,j;
-	char * buffer = level;
+	int i, j;
 	for(i=0; i< 12; i++)
 	{
-		for(j=0; j< 14; j++)
+		j = 0;
+		while(j < 14)
 		{
-			char c;
-			int read = sscanf(buffer, "%*[ \n\t]%c", &c);
-			printf("%c ", c);
+			char c = *level;
+
 			g->bricks[i*14+j].enabled = 1;
 			g->bricks[i*14+j].value = c-'0';
 
@@ -94,24 +93,30 @@ void breakout_init(game_struct * g, char * level)
 			{
 			case '1':
 				g->bricks[i*14+j].s = sprite_init(45+j*50+j, 45+i*20+i, 50, 20, (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK0, 50, 0);
+				j++;
 				break;
 			case '2':
 				g->bricks[i*14+j].s = sprite_init(45+j*50+j, 45+i*20+i, 50, 20, (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK1, 50, 0);
+				j++;
 				break;
 			case '3':
 				g->bricks[i*14+j].s = sprite_init(45+j*50+j, 45+i*20+i, 50, 20, (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK2, 50, 0);
+				j++;
 				break;
 			case '4':
 				g->bricks[i*14+j].s = sprite_init(45+j*50+j, 45+i*20+i, 50, 20, (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK3, 50, 0);
+				j++;
 				break;
 			case '*':
 				g->bricks[i*14+j].enabled = 0;
+				j++;
+				break;
+			default:
 				break;
 			}
 
-			buffer += read+1;
+			level++;
 		}
-		printf("\n");
 	}
 
 	// Initialize paddle
@@ -141,6 +146,9 @@ void breakout_init(game_struct * g, char * level)
 
 	// Initialize score
 	g->score = 0;
+
+	// Initialize events queue
+	g->events_queue = queue_new(EVENT_QUEUE_SIZE);
 
 	// Display background
 	sprite * s = sprite_init(0,0, 800, 480, (alt_u32*) display->frame_buffer[0], 0, 0);

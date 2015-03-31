@@ -33,6 +33,8 @@ OS_STK      console_task_stk     [TASK_STACKSIZE];
 
 int main(void)
 {
+	breakout_create_textures();
+
 	// Initialize main structure
 	game_struct game;
 

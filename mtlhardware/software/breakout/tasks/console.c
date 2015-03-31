@@ -14,19 +14,6 @@
 #include "mpack.h"
 #include "breakout.h"
 
-static char level [400] =" * * * * * 1 1 1 1 * * * * *\
-* * * * 1 1 1 1 1 1 * * * *\
-* * * 1 1 1 2 2 1 1 1 * * *\
-* * 1 1 2 2 3 3 2 2 1 1 * *\
-* * 1 2 2 3 4 4 3 2 2 1 * *\
-* 1 1 2 3 4 4 4 4 3 2 1 1 *\
-* 1 1 2 3 4 4 4 4 3 2 1 1 *\
-* * 1 2 2 3 4 4 3 2 2 1 * *\
-* * 1 1 2 2 3 3 2 2 1 1 * *\
-* * * 1 1 1 2 2 1 1 1 * * *\
-* * * * 1 1 1 1 1 1 * * * *\
-* * * * * 1 1 1 1 * * * * *";
-
 void console_task(void* pdata)
 {
 	game_struct * game = (game_struct *) pdata;
@@ -47,7 +34,24 @@ void console_task(void* pdata)
 		}
 		else if(!strncmp(command, "MyGame", 6))
 		{
-			breakout_init(game, level);
+			alt_16 level;
+			char level_file[100];
+
+			printf("Enter a level :\n");
+			scanf("%d", &level);
+
+			sprintf(level_file, "level%02d.txt", level);
+
+			char * level_text;
+			size_t len;
+
+			pic32_sendrpc(game->periph.pic32_handle, level_file, 12, CYCLONE_RPC_FILE);
+			while(!pic32_receive(game->periph.pic32_handle, &level_text, &len, 0));
+
+			breakout_init(game, level_text);
+
+			free(level_text);
+
 		}
 		else if(!strncmp(command, "MyMIWI", 6))
 		{
@@ -81,6 +85,7 @@ void console_task(void* pdata)
 			while(!pic32_receive(game->periph.pic32_handle, &msg, &len, 0));
 
 			fwrite(msg,1,len,stdout);
+			free(msg);
 			printf("\n");
 		}
 		else if(!strncmp(command, "MyMultiTouch", 12))

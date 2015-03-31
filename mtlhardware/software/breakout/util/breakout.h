@@ -8,19 +8,20 @@
 #include "display.h"
 #include "adxl345.h"
 
-#define IMG_BALL        0
-#define TEXTURE_WALL    400
-#define TEXTURE_PADDLE  450
-#define TEXTURE_BRICK0  550
-#define TEXTURE_BRICK1  600
-#define TEXTURE_BRICK2  650
-#define TEXTURE_BRICK3  700
+#define IMG_BALL         0
+#define TEXTURE_WALL     400
+#define TEXTURE_PADDLE   450
+#define TEXTURE_BRICK0   550
+#define TEXTURE_BRICK1   600
+#define TEXTURE_BRICK2   650
+#define TEXTURE_BRICK3   700
 
 
-#define BALL_WIDTH      20
-#define BALL_HEIGHT     20
-#define NBR_BRICKS      168
-#define SCORE_UNIT		20
+#define BALL_WIDTH       20
+#define BALL_HEIGHT      20
+#define NBR_BRICKS       168
+#define SCORE_UNIT		 20
+#define EVENT_QUEUE_SIZE 16
 
 typedef enum {
 	PAUSED,
@@ -63,9 +64,11 @@ typedef struct {
 	alt_8       speed;
 	alt_8       lives;
 	alt_32      score;
+	queue     * events_queue;
 } game_struct;
 
 
 void breakout_init(game_struct * g, char * level_filename);
+void breakout_create_textures();
 
 #endif /* BREAKOUT_H_ */
