@@ -6,6 +6,7 @@
 #include <alt_types.h>
 
 #include "pic32.h"
+#include "player2.h"
 
 #include "console.h"
 #include "rpc.h"
@@ -17,17 +18,26 @@
 #define     TASK_STACKSIZE       2048
 OS_STK      rpc_task_stk         [TASK_STACKSIZE];
 OS_STK      console_task_stk     [TASK_STACKSIZE];
+OS_STK      player2_task_stk         [TASK_STACKSIZE];
 
 /* Definition of Task Priorities */
 
 #define RPC_TASK_PRIORITY          1
 #define CONSOLE_TASK_PRIORITY      2
+#define PLAYER2_TASK_PRIORITY      3
+
 
 int main(void)
+
 {
 	// Initialize peripherals
 	game_state game;
 	game.pic32_handle = pic32_init(PIC32_BASE, PIC32_INT1_BASE, PIC32_INT2_BASE, PIC32_INT2_IRQ_INTERRUPT_CONTROLLER_ID, PIC32_INT2_IRQ);
+	game.lcd_handle = lcd_init(LCD_BASE, LCD_RESET_N_BASE);
+
+
+
+	// do touch handle ....
 
 	// Welcome message
 	printf("Breakout console\n");
@@ -53,6 +63,16 @@ int main(void)
 				  TASK_STACKSIZE,
 				  NULL,
 				  0);
+	// Create player2 task
+		OSTaskCreateExt(player2_task,
+					  (void *)&game,
+					  (void *)&player2_task_stk[TASK_STACKSIZE-1],
+					  PLAYER2_TASK_PRIORITY,
+					  PLAYER2_TASK_PRIORITY,
+					  player2_task_stk,
+					  TASK_STACKSIZE,
+					  NULL,
+					  0);
 
 	// Start the OS scheduler
 	OSStart();

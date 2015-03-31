@@ -51,7 +51,8 @@ void pic32_isr(void *isr_context)
 				p->state->cnt = 0;
 			}
 
-			p->state->buffer[p->state->cnt++] = IORD(p->PIC_BASE,CYCLONE_TXDATA);
+			if(p->state->buffer)
+				p->state->buffer[p->state->cnt++] = IORD(p->PIC_BASE,CYCLONE_TXDATA);
 
 			if(status & CYCLONE_END_MASK)
 				p->state->transfer_done = 1;

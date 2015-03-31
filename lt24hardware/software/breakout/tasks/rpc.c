@@ -9,13 +9,19 @@
 #include "rpc.h"
 #include "mpack.h"
 #include "breakout.h"
+#include "alt_video_display.h"
+#include "simple_graphics.h"
+#include "touch_spi.h"
+
 
 void rpc_task(void* pdata)
 {
 	game_state * game = (game_state *) pdata;
 
+
 	while (1)
 	{
+
 		char * msg;
 		size_t len;
 
