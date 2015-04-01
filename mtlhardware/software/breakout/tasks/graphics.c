@@ -17,12 +17,13 @@
 #include "breakout.h"
 #include "graphics.h"
 
+#define DISPLAY_DO_ASYNC_TRANSFER
+
 void graphics_isr(void * context)
 {
 	alt_u8 err;
 	game_struct * game = (game_struct *) context;
 	display_info * display = game->periph.display_handle;
-	alt_sgdma_dev * sgdma = display->sgdma;
 
 	// Check if frame switching is needed
 	OSSemPend(display->switch_queue->sem, 0, &err);
@@ -37,7 +38,10 @@ void graphics_isr(void * context)
 	free((alt_sgdma_descriptor *) display->desc_current);
 	display->desc_current = 0;
 
+#ifdef DISPLAY_DO_ASYNC_TRANSFER
+	alt_sgdma_dev * sgdma = display->sgdma;
 	alt_u8 frame = !(display->displayed_frame);
+
 	OSSemPend(display->desc_queue[frame]->sem, 0, &err);
 	if(!queue_is_empty(display->desc_queue[frame]))
 	{
@@ -46,6 +50,8 @@ void graphics_isr(void * context)
 		alt_avalon_sgdma_do_async_transfer(sgdma, desc);
 	}
 	OSSemPost(display->desc_queue[frame]->sem);
+#endif
+
 }
 
 void graphics_task(void* pdata)
@@ -68,7 +74,12 @@ void graphics_task(void* pdata)
 			{
 				alt_sgdma_descriptor * desc = (alt_sgdma_descriptor *) queue_pop(display->desc_queue[frame]);
 				display->desc_current = (alt_u32) desc;
+#ifdef DISPLAY_DO_ASYNC_TRANSFER
 				alt_avalon_sgdma_do_async_transfer(sgdma, desc);
+#else
+				alt_avalon_sgdma_do_sync_transfer(sgdma, desc);
+				graphics_isr(game);
+#endif
 			}
 			OSSemPost(display->desc_queue[frame]->sem);
 		}

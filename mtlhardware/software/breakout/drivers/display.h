@@ -34,7 +34,7 @@
 typedef struct
 {
     alt_u32 	    DISPLAY_BASE;
-    alt_u32 	    frame_buffer [3][DISPLAY_MAX_HEIGHT][DISPLAY_MAX_WIDTH];
+    alt_u32 	    frame_buffer [4][DISPLAY_MAX_HEIGHT][DISPLAY_MAX_WIDTH];
     alt_u32 	    desc_current;
     alt_u8  	    displayed_frame;
     alt_u8 		    alt_frame;
@@ -53,6 +53,6 @@ void          display_remove_sprite(display_info *p, sprite *s, alt_u8 end_frame
 void          display_add_sprite(display_info *p, sprite *s, alt_u8 end_frame);
 void          display_push_desc(display_info* p, alt_sgdma_descriptor * desc, alt_u8 frame, alt_u8 end_frame);
 alt_sgdma_descriptor * display_imgcpy_desc(display_info *p, alt_u8 frame, sprite * s, void * img, int t_width, int t_height);
-alt_sgdma_descriptor * display_texcpy_desc(display_info *p, alt_u8 frame, void * tex, int x, int y, int c_width, int c_height, int t_size);
+alt_sgdma_descriptor * display_texcpy_desc(display_info *p, alt_u8 frame, sprite * s, void * tex, int t_size);
 
 #endif /* DISPLAY_H_ */

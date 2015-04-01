@@ -14,9 +14,13 @@ void breakout_create_textures(display_info * display)
 			for(j=0; j<800; j++)
 				display->frame_buffer[0][i][j] = 0xff0000 + ((i*255/480) << 8);
 
+	for(i=0; i<480; i++)
+			for(j=0; j<800; j++)
+				display->frame_buffer[3][i][j] = 0x0;
+
 	for(i=-10; i<10; i++)
 		for(j=-10; j<10;j++)
-			IOWR(TEXTURES_BASE+IMG_BALL, (i+10)*20+(j+10), ((i*i+j*j) <= 80) ? 0x0 : 0x2a2a2a);
+			IOWR(TEXTURES_BASE+IMG_BALL, (i+10)*20+(j+10), ((i*i+j*j) <= 90) ? 0x0 : 0x2a2a2a);
 
 	for(i=0; i<100; i++)
 		IOWR(TEXTURES_BASE, TEXTURE_PADDLE+i, (i*i/27)%2==0 ? 0x505050 : 0x000000);
@@ -35,11 +39,27 @@ void breakout_create_textures(display_info * display)
 
 	for(i=0; i<50; i++)
 		IOWR(TEXTURES_BASE, TEXTURE_WALL+i, 0x4a4a4a);
+
+	alt_dcache_flush_all();
 }
 
 void breakout_uninit(game_struct * g)
 {
+	g->state = NOGAME;
+	queue_delete(g->events_queue);
+	free(g->paddle);
 
+	int i;
+	for(i=0;i<3;i++)
+		free(g->walls[i]);
+}
+
+void breakout_clear_screen(display_info *display)
+{
+	// Display background
+	sprite * s = sprite_init(0,0, 800, 480, (alt_u32*) display->frame_buffer[3], 0, 0);
+	display_add_sprite(display, s, 1);
+	free(s);
 }
 
 void breakout_init(game_struct * g, char * level)
@@ -48,15 +68,9 @@ void breakout_init(game_struct * g, char * level)
 
 	// Stop the game
 	if(g->state != NOGAME)
-	{
-		g->state = NOGAME;
-		queue_delete(g->events_queue);
-		free(g->paddle);
+		breakout_uninit(g);
 
-		int i;
-		for(i=0;i<3;i++)
-			free(g->walls[i]);
-	}
+	breakout_clear_screen(display);
 
 	// Initialize bricks
 	int i, j;

@@ -50,6 +50,7 @@ int main(void)
 	game.periph.adxl345_handle = adxl345_init(ADXL345_BASE);
 
 	breakout_create_textures(game.periph.display_handle);
+	breakout_clear_screen(game.periph.display_handle);
 	game.state = NOGAME;
 
 	// Create Graphics task

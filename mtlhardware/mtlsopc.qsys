@@ -185,14 +185,6 @@
          type = "String";
       }
    }
-   element sdram.s1
-   {
-      datum baseAddress
-      {
-         value = "33554432";
-         type = "String";
-      }
-   }
    element pic32_int2.s1
    {
       datum baseAddress
@@ -201,11 +193,11 @@
          type = "String";
       }
    }
-   element textures.s1
+   element sdram.s1
    {
       datum baseAddress
       {
-         value = "67108864";
+         value = "33554432";
          type = "String";
       }
    }
@@ -214,6 +206,14 @@
       datum baseAddress
       {
          value = "67119504";
+         type = "String";
+      }
+   }
+   element textures.s1
+   {
+      datum baseAddress
+      {
+         value = "67108864";
          type = "String";
       }
    }
@@ -267,7 +267,7 @@
    }
 }
 ]]></parameter>
- <parameter name="clockCrossingAdapter" value="HANDSHAKE" />
+ <parameter name="clockCrossingAdapter" value="FIFO" />
  <parameter name="device" value="EP4CE22F17C6" />
  <parameter name="deviceFamily" value="Cyclone IV E" />
  <parameter name="deviceSpeedGrade" value="6" />
@@ -534,7 +534,7 @@
   <parameter name="NUMBER_OF_COLOUR_PLANES" value="3" />
   <parameter name="COLOUR_PLANES_ARE_IN_PARALLEL" value="1" />
   <parameter name="BPS" value="8" />
-  <parameter name="INTERLACED" value="0" />
+  <parameter name="INTERLACED" value="1" />
   <parameter name="H_ACTIVE_PIXELS" value="800" />
   <parameter name="V_ACTIVE_LINES" value="480" />
   <parameter name="ACCEPT_COLOURS_IN_SEQ" value="0" />
@@ -780,7 +780,7 @@
   <parameter name="enableDescriptorReadMasterBurst" value="false" />
   <parameter name="enableUnalignedTransfers" value="false" />
   <parameter name="internalFIFODepth" value="2" />
-  <parameter name="readBlockDataWidth" value="32" />
+  <parameter name="readBlockDataWidth" value="16" />
   <parameter name="readBurstcountWidth" value="4" />
   <parameter name="sinkErrorWidth" value="0" />
   <parameter name="sourceErrorWidth" value="0" />
@@ -888,11 +888,6 @@
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
-   kind="reset"
-   version="13.1"
-   start="clk_0.clk_reset"
-   end="alt_vip_vfr.clock_reset_reset" />
- <connection
    kind="avalon"
    version="13.1"
    start="cpu.data_master"
@@ -901,11 +896,6 @@
   <parameter name="baseAddress" value="0x04002880" />
   <parameter name="defaultConnection" value="false" />
  </connection>
- <connection
-   kind="reset"
-   version="13.1"
-   start="clk_0.clk_reset"
-   end="alt_vip_vfr.clock_master_reset" />
  <connection
    kind="reset"
    version="13.1"
@@ -961,21 +951,6 @@
    end="altpll.inclk_interface_reset" />
  <connection kind="clock" version="13.1" start="altpll.c0" end="jtag_uart.clk" />
  <connection kind="clock" version="13.1" start="altpll.c0" end="timer.clk" />
- <connection
-   kind="clock"
-   version="13.1"
-   start="altpll.c0"
-   end="alt_vip_itc.is_clk_rst" />
- <connection
-   kind="clock"
-   version="13.1"
-   start="altpll.c0"
-   end="alt_vip_vfr.clock_master" />
- <connection
-   kind="clock"
-   version="13.1"
-   start="altpll.c0"
-   end="alt_vip_vfr.clock_reset" />
  <connection kind="clock" version="13.1" start="altpll.c0" end="cpu.clk" />
  <connection kind="clock" version="13.1" start="altpll.c0" end="sdram.clk" />
  <connection kind="reset" version="13.1" start="clk_0.clk_reset" end="pic32.reset" />
@@ -1145,7 +1120,32 @@
   <parameter name="baseAddress" value="0x04000000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
- <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
+ <connection
+   kind="reset"
+   version="13.1"
+   start="clk_0.clk_reset"
+   end="alt_vip_vfr.clock_reset_reset" />
+ <connection
+   kind="reset"
+   version="13.1"
+   start="clk_0.clk_reset"
+   end="alt_vip_vfr.clock_master_reset" />
+ <connection
+   kind="clock"
+   version="13.1"
+   start="altpll.c0"
+   end="alt_vip_itc.is_clk_rst" />
+ <connection
+   kind="clock"
+   version="13.1"
+   start="altpll.c0"
+   end="alt_vip_vfr.clock_master" />
+ <connection
+   kind="clock"
+   version="13.1"
+   start="altpll.c0"
+   end="alt_vip_vfr.clock_reset" />
+ <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="FIFO" />
  <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="1" />
  <interconnectRequirement for="$system" name="qsys_mm.insertDefaultSlave" value="false" />
 </system>

@@ -29,13 +29,6 @@ display_info* display_init(alt_u32 DISPLAY_BASE, const char * sgdma_name, alt_av
 	alt_avalon_sgdma_register_callback(p->sgdma, sgdma_callback,
 			(ALTERA_AVALON_SGDMA_CONTROL_IE_GLOBAL_MSK | ALTERA_AVALON_SGDMA_CONTROL_IE_CHAIN_COMPLETED_MSK ), sgdma_context);
 
-	int i, j;
-	for(i=0; i<DISPLAY_MAX_HEIGHT; i++)
-		for(j=0; j<DISPLAY_MAX_WIDTH; j++)
-			p->frame_buffer[1][i][j] = 0x0;
-
-	alt_dcache_flush_all();
-
     display_go(p, 0);
 
     // Configure frame 0
@@ -44,7 +37,7 @@ display_info* display_init(alt_u32 DISPLAY_BASE, const char * sgdma_name, alt_av
 	IOWR(DISPLAY_BASE, DISPLAY_FRAME0_COLOR_PATTERN, DISPLAY_MAX_WIDTH*DISPLAY_MAX_HEIGHT);
 	IOWR(DISPLAY_BASE, DISPLAY_FRAME0_WIDTH, DISPLAY_MAX_WIDTH);
 	IOWR(DISPLAY_BASE, DISPLAY_FRAME0_HEIGHT, DISPLAY_MAX_HEIGHT);
-	IOWR(DISPLAY_BASE, DISPLAY_FRAME0_INTERLACE, 0);
+	IOWR(DISPLAY_BASE, DISPLAY_FRAME0_INTERLACE, 1);
 
 	// Configure frame 1
 	IOWR(DISPLAY_BASE, DISPLAY_FRAME1_BASE, (alt_u32)p->frame_buffer[2]);
@@ -52,7 +45,7 @@ display_info* display_init(alt_u32 DISPLAY_BASE, const char * sgdma_name, alt_av
 	IOWR(DISPLAY_BASE, DISPLAY_FRAME1_COLOR_PATTERN, DISPLAY_MAX_WIDTH*DISPLAY_MAX_HEIGHT);
 	IOWR(DISPLAY_BASE, DISPLAY_FRAME1_WIDTH, DISPLAY_MAX_WIDTH);
 	IOWR(DISPLAY_BASE, DISPLAY_FRAME1_HEIGHT, DISPLAY_MAX_HEIGHT);
-	IOWR(DISPLAY_BASE, DISPLAY_FRAME1_INTERLACE, 0);
+	IOWR(DISPLAY_BASE, DISPLAY_FRAME1_INTERLACE, 1);
 
 	IOWR(p->DISPLAY_BASE, 3,p->displayed_frame);
 
@@ -107,13 +100,13 @@ void display_add_sprite(display_info *p, sprite *s, alt_u8 end_frame)
 
 	// Making descriptor list for the image to place
 	if(s->texture)
-		desc1 = display_texcpy_desc(p, 0, s->img_base, s->x, s->y, s->width, s->height, s->texture);
+		desc1 = display_texcpy_desc(p, 0, s, s->img_base, s->texture);
 	else
 		desc1 = display_imgcpy_desc(p, 0, s, s->img_base, s->width, s->height);
 
 	// Making descriptor list for the image to place
 	if(s->texture)
-		desc2 = display_texcpy_desc(p, 1, s->img_base, s->x, s->y, s->width, s->height, s->texture);
+		desc2 = display_texcpy_desc(p, 1, s, s->img_base, s->texture);
 	else
 		desc2 = display_imgcpy_desc(p, 1, s, s->img_base, s->width, s->height);
 
@@ -171,41 +164,33 @@ alt_sgdma_descriptor * display_imgcpy_desc(display_info *p, alt_u8 frame, sprite
 			c_size = (s->width-2*j)*sizeof(alt_u32);
 		}
 
-		if(((alt_u32) dest_pos + c_size > (alt_u32)buffer+DISPLAY_MAX_WIDTH*DISPLAY_MAX_HEIGHT*4) ||
-				(alt_u32) dest_pos <(alt_u32)buffer)
-			printf("Buffer overflow !\n");
-
 		alt_avalon_sgdma_construct_mem_to_mem_desc(desc+i, (i == s->height-1)? 0: (desc+i+1), src_pos, dest_pos, c_size, 0, 0);
 	}
 
 	return desc;
 }
 
-alt_sgdma_descriptor * display_texcpy_desc(display_info *p, alt_u8 frame, void * tex, int x, int y, int c_width, int c_height, int t_size)
+alt_sgdma_descriptor * display_texcpy_desc(display_info *p, alt_u8 frame, sprite * s, void * tex, int t_size)
 {
-	int c_pixels = c_width/t_size;
-	int r_pixels = c_width%t_size;
+	int c_pixels = s->width/t_size;
+	int r_pixels = s->width%t_size;
 
-	alt_sgdma_descriptor * desc = (alt_sgdma_descriptor *) malloc(sizeof(alt_sgdma_descriptor)*(c_pixels+(r_pixels != 0))*c_height);
+	alt_sgdma_descriptor * desc = (alt_sgdma_descriptor *) malloc(sizeof(alt_sgdma_descriptor)*(c_pixels+(r_pixels != 0))*s->height);
 	void * buffer = p->frame_buffer[frame+1];
 
 	alt_u32 * src_pos = (alt_u32 *) tex;
 
 	int i, j;
 	int cc_size = 0;
-	for(i=0; i < c_height; i++)
+	for(i=0; i < s->height; i++)
 	{
 		int jcnt = c_pixels+(r_pixels != 0);
 		for(j=0; j < jcnt; j++)
 		{
-			alt_u32 * dest_pos = (alt_u32 *) buffer + (y+i)*DISPLAY_MAX_WIDTH + x + j*(t_size);
+			alt_u32 * dest_pos = (alt_u32 *) buffer + (s->y+i)*DISPLAY_MAX_WIDTH + s->x + j*(t_size);
 			alt_u32 c_size =  (j== jcnt-1) && (r_pixels != 0) ? r_pixels*sizeof(alt_u32) : t_size*sizeof(alt_u32);
 
-			if(((alt_u32) dest_pos + c_size > (alt_u32)buffer+DISPLAY_MAX_WIDTH*DISPLAY_MAX_HEIGHT*4) ||
-							(alt_u32) dest_pos <(alt_u32)buffer)
-						printf("Buffer overflow !\n");
-
-			alt_avalon_sgdma_construct_mem_to_mem_desc(desc+i*jcnt+j, (i == c_height-1) && (j==jcnt-1)? 0: (desc+i*jcnt+j+1), src_pos, dest_pos, c_size, 0, 0);
+			alt_avalon_sgdma_construct_mem_to_mem_desc(desc+i*jcnt+j, (i == s->height-1) && (j==jcnt-1)? 0: (desc+i*jcnt+j+1), src_pos, dest_pos, c_size, 0, 0);
 			cc_size += c_size;
 			src_pos = (alt_u32*)tex + (cc_size/sizeof(alt_u32))%t_size;
 		}

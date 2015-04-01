@@ -146,7 +146,8 @@ void game_task(void* pdata)
 						if(--(game->lives) <= 0)
 						{
 							game->state = NOGAME;
-							printf("Game over (score :%d) !\n", game->score);
+							printf("Game over (score :%d) !\n", (int) game->score);
+							breakout_clear_screen(display);
 						}
 						else
 							printf("Lost ball ! Remaining lives : %d\n", game->lives);
