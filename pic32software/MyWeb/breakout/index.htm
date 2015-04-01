@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>MyApp website</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h3 class="text-muted">LELEC2103 : Breakout</h3>
+        </div>
+        <hr/>
+        <h4>Start a new game</h4>
+        <form class="form-inline" method="post">
+            <div class="form-group">
+                <select class="form-control" name="level">
+                    <option value="0" selected >Select level</option> 
+                    <option value="1">Level 1</option>
+                    <option value="2">Level 2</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-default">Launch game</button>
+            </div>
+        </form>	
+
+        <h4>Game status : ~state~</h4>
+
+        <div>Lives : ~lives~</div>
+        <div>Ball(s) :~ball~</div>
+        <div>Remaining bricks : ~bricks~</div>
+        <div>Score : ~score~</div>
+        <div>Size : ~size~</div>
+        <div>Speed : ~speed~</div>
+         <hr />
+        <footer class="footer">
+        <p>Anthony G&eacute;go - Nicolas Marchand</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -83,34 +83,16 @@ void breakout_init(game_struct * g, char * level)
 			g->bricks[i*14+j].enabled = 1;
 			g->bricks[i*14+j].value = *level-'0';
 
-			switch(*level)
+			if(g->bricks[i*14+j].value > 0 && g->bricks[i*14+j].value < 5)
 			{
-			case '1':
-				g->bricks[i*14+j].s = sprite_init(45+j*50+j, 45+i*20+i, 50, 20, (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK0, 50, 0);
+				g->bricks[i*14+j].s = sprite_init(45+j*50+j, 45+i*20+i, 50, 20, (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK0+(g->bricks[i*14+j].value-1)*TEXTURE_BRICK_SIZE, 50, 0);
 				g->rbricks++;
 				j++;
-				break;
-			case '2':
-				g->bricks[i*14+j].s = sprite_init(45+j*50+j, 45+i*20+i, 50, 20, (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK1, 50, 0);
-				g->rbricks++;
-				j++;
-				break;
-			case '3':
-				g->bricks[i*14+j].s = sprite_init(45+j*50+j, 45+i*20+i, 50, 20, (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK2, 50, 0);
-				g->rbricks++;
-				j++;
-				break;
-			case '4':
-				g->bricks[i*14+j].s = sprite_init(45+j*50+j, 45+i*20+i, 50, 20, (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK3, 50, 0);
-				g->rbricks++;
-				j++;
-				break;
-			case '*':
+			}
+			else if(*level == '*')
+			{
 				g->bricks[i*14+j].enabled = 0;
 				j++;
-				break;
-			default:
-				break;
 			}
 		}
 	}

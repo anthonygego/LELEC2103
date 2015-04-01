@@ -22,7 +22,6 @@ void MyRPC_File(char * msg, size_t len)
 
 void MyRPC_Info(char * msg, size_t len)
 {
-    MyConsole_SendMsg("Info!\n");
     // parse a data buffer into a node tree
     mpack_tree_t tree;
     mpack_tree_init(&tree, msg, len);

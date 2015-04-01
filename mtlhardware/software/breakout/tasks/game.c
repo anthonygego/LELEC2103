@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <system.h>
+#include <unistd.h>
 #include <includes.h>
 #include <alt_types.h>
 #include <sys/alt_cache.h>
@@ -54,13 +55,13 @@ void game_event_pop(game_struct * g)
 			display_add_sprite(g->periph.display_handle, g->paddle, 0);
 			break;
 		case ADD_BALL:
-			g->balls[1].enabled = 0;
+			g->balls[1].enabled = 1;
 			break;
 		case SPEED_DOWN:
 			g->speed = (g->speed > 10) ? g->speed - 5 : 5;
 			break;
 		case SPEED_UP:
-			g->speed = (g->speed <= 50) ? g->speed + 5 : 50;
+			g->speed = (g->speed <= 20) ? g->speed + 5 : 20;
 			break;
 		default:
 			break;
@@ -77,7 +78,8 @@ void game_task(void* pdata)
 	adxl345_coordinates adxl_c;
 	alt_u8 mtc_event, mtc_touchnum;
 	alt_u16 mtc_x1, mtc_x2, mtc_y1, mtc_y2;
-	int delta, i;
+	int delta, i, j;
+	alt_16 adxl_mean = 0;
 
 	while(1)
 	{
@@ -85,7 +87,9 @@ void game_task(void* pdata)
 		// Compute new coordinate for the paddle from accelerometer data
 		//
 		adxl345_read(game->periph.adxl345_handle, ADXL345_DATAX0, (alt_u8 *)  &adxl_c, 6);
-		int accel_x = (-adxl_c.y*600/400)+300;
+		adxl_mean = abs(adxl_c.y) <= 255 ? adxl_c.y/5 + 4*adxl_mean/5 : adxl_mean;
+
+		int accel_x = (-adxl_mean*32/10)+400-game->paddle->width/2;
 		accel_x = (accel_x > 800-game->paddle->width) ? 800-game->paddle->width : (accel_x < 0) ? 0 : accel_x;
 
 		//
@@ -105,8 +109,7 @@ void game_task(void* pdata)
 
 			// Update paddle and balls position
 			delta = accel_x - game->paddle->x;
-			if(abs(delta) > 10)
-				display_move_sprite(display, game->paddle, 0, accel_x, 440);
+			display_move_sprite(display, game->paddle, 0, accel_x, 440);
 
 			for(i=0; i<2; i++)
 			{
@@ -114,31 +117,27 @@ void game_task(void* pdata)
 				alt_u16 ball_new_y = game->balls[i].s->y + game->balls[i].v.y*game->speed;
 
 				// Check for collision with walls and paddle
+				for(j=0; j<3; j++)
+				{
+					if(sprite_collision(ball_new_x, ball_new_y, game->balls[i].s->width, game->balls[i].s->height, game->balls[i].s->img_base,
+							game->walls[j]->x, game->walls[j]->y, game->walls[j]->width, game->walls[j]->height, game->walls[j]->img_base))
+					{
+						if((j+1)%2==0)
+							game->balls[i].v.y = - game->balls[i].v.y;
+						else
+							game->balls[i].v.x = - game->balls[i].v.x;
+					}
+				}
+
+
 				if(sprite_collision(ball_new_x, ball_new_y, game->balls[i].s->width, game->balls[i].s->height, game->balls[i].s->img_base,
-						game->walls[0]->x, game->walls[0]->y, game->walls[0]->width, game->walls[0]->height, game->walls[0]->img_base))
-				{
-					// Collision with wall 1
-					game->balls[i].v.x = - game->balls[i].v.x;
-				}
-				else if(sprite_collision(ball_new_x, ball_new_y, game->balls[i].s->width, game->balls[i].s->height, game->balls[i].s->img_base,
-						game->walls[1]->x, game->walls[1]->y, game->walls[1]->width, game->walls[1]->height, game->walls[1]->img_base))
-				{
-					// Collision with wall 2
-					game->balls[i].v.y = - game->balls[i].v.y;
-				}
-				else if(sprite_collision(ball_new_x, ball_new_y, game->balls[i].s->width, game->balls[i].s->height, game->balls[i].s->img_base,
-						game->walls[2]->x, game->walls[2]->y, game->walls[2]->width, game->walls[2]->height, game->walls[2]->img_base))
-				{
-					// Collision with wall 3
-					game->balls[i].v.x = - game->balls[i].v.x;
-				}
-				else if(sprite_collision(ball_new_x, ball_new_y, game->balls[i].s->width, game->balls[i].s->height, game->balls[i].s->img_base,
 						game->paddle->x, game->paddle->y, game->paddle->width, game->paddle->height, game->paddle->img_base))
 				{
 					// Collision with paddle
 					game->balls[i].v.y = - game->balls[i].v.y;
 				}
-				else if(ball_new_x + BALL_WIDTH > DISPLAY_MAX_WIDTH || ball_new_y + BALL_HEIGHT > DISPLAY_MAX_HEIGHT)
+
+				if(ball_new_x + BALL_WIDTH > DISPLAY_MAX_WIDTH || ball_new_y + BALL_HEIGHT > DISPLAY_MAX_HEIGHT)
 				{
 					// Out of game
 					if(game->balls[0].enabled + game->balls[1].enabled < 2)
@@ -165,7 +164,7 @@ void game_task(void* pdata)
 				}
 
 				alt_u8 collision = 0;
-				alt_u16 j;
+
 				for(j=0; j<NBR_BRICKS && !collision; j++)
 				{
 
@@ -213,6 +212,7 @@ void game_task(void* pdata)
 					game->state = WON;
 					printf("Well done (score :%d) !\n", (int) game->score);
 					breakout_clear_screen(display);
+					break;
 				}
 
 				ball_new_x = game->balls[i].s->x + game->balls[i].v.x*game->speed;
@@ -234,15 +234,13 @@ void game_task(void* pdata)
 
 			// Update paddle and balls position
 			delta = accel_x - game->paddle->x;
-			if(abs(delta) > 10)
-			{
-				if(game->balls[0].enabled)
-					display_move_sprite(display, game->balls[0].s, 0, (game->balls[0].s->x) + delta, game->balls[0].s->y);
-				if(game->balls[1].enabled)
-					display_move_sprite(display, game->balls[1].s, 0, (game->balls[1].s->x) + delta, game->balls[1].s->y);
-				display_move_sprite(display, game->paddle, 1, accel_x, 440);
-			}
+			if(game->balls[0].enabled)
+				display_move_sprite(display, game->balls[0].s, 0, (game->balls[0].s->x) + delta, game->balls[0].s->y);
+			if(game->balls[1].enabled)
+				display_move_sprite(display, game->balls[1].s, 0, (game->balls[1].s->x) + delta, game->balls[1].s->y);
+			display_move_sprite(display, game->paddle, 1, accel_x, 440);
 
+			usleep(20000);
 			break;
 		case PAUSED:
 			// If a double click is done, launch the ball(s)
@@ -257,7 +255,7 @@ void game_task(void* pdata)
 		//
 		// Sleep for a while
 		//
-		OSTimeDlyHMSM(0, 0, 0, 30);
+		OSTimeDlyHMSM(0, 0, 0, 40);
 	}
 }
 
@@ -271,8 +269,7 @@ void game_status_task(void* pdata)
 		char buffer[1024];
 		mpack_writer_t writer;
 		mpack_writer_init_buffer(&writer, buffer, sizeof(buffer));
-		//printf("lol1 \n");
-		// write the example on the msgpack homepage
+
 		mpack_start_map(&writer, 7);
 
 		// Game state
@@ -313,6 +310,5 @@ void game_status_task(void* pdata)
 
 
 		OSTimeDlyHMSM(0, 0, 1, 0);
-		//printf("lol2 \n");
 	}
 }

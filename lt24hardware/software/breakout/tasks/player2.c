@@ -122,11 +122,11 @@ void player2_task(void* pdata)
 
 				// Message type is 0
 				mpack_write_cstr(&writer, "msgtype");
-				mpack_write_bool(&writer, 0);
+				mpack_write_u8(&writer, 0);
 
 				// Value is given by button pressed
 				mpack_write_cstr(&writer, "value");
-				mpack_write_uint(&writer, event);
+				mpack_write_u8(&writer, event);
 
 				// Close mpack map
 				mpack_finish_map(&writer);
