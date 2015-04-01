@@ -51,3 +51,10 @@ ledSelected(1,FALSE)
 +write_comm(0)
 +write_comm(1)
 +write_comm(2)
+state
+lives
+ball
+bricks
+score
+size
+speed

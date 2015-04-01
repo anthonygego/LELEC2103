@@ -286,6 +286,9 @@ void MyCyclone_Task(void)
             case CYCLONE_RPC_FILE:
                 MyRPC_File(inner_msg, inner_msg_len);
                 break;
+            case CYCLONE_RPC_INFO:
+                MyRPC_Info(inner_msg, inner_msg_len);
+                break;
         }
         free(msg);
     }

@@ -86,16 +86,19 @@ void game_task(void* pdata)
 		//
 		adxl345_read(game->periph.adxl345_handle, ADXL345_DATAX0, (alt_u8 *)  &adxl_c, 6);
 		int accel_x = (-adxl_c.y*600/400)+300;
-		accel_x = (accel_x > 600) ? 600 : (accel_x < 0) ? 0 : accel_x;
+		accel_x = (accel_x > 800-game->paddle->width) ? 800-game->paddle->width : (accel_x < 0) ? 0 : accel_x;
 
 		//
 		// Main Game logic
 		//
 		switch(game->state)
 		{
-		case NOGAME:
-			break;
 		case BALL_MOVING:
+
+			// If a double click is done, launch the ball(s)
+			if(mtc_get_status(game->periph.mtc_handle, &mtc_event, &mtc_touchnum, &mtc_x1, &mtc_y1, &mtc_x2, &mtc_y2))
+				if(mtc_event == MTC_ST_DOUBLECLICK)
+					game->state = PAUSED;
 
 			// Pop event queue
 			game_event_pop(game);
@@ -145,7 +148,7 @@ void game_task(void* pdata)
 
 						if(--(game->lives) <= 0)
 						{
-							game->state = NOGAME;
+							game->state = LOST;
 							printf("Game over (score :%d) !\n", (int) game->score);
 							breakout_clear_screen(display);
 						}
@@ -180,7 +183,10 @@ void game_task(void* pdata)
 							display_remove_sprite(display, game->bricks[j].s, 0);
 
 							if(game->bricks[j].value == 1)
+							{
+								game->rbricks--;
 								game->bricks[j].enabled = 0;
+							}
 							else
 							{
 								// Replace brick
@@ -200,6 +206,13 @@ void game_task(void* pdata)
 								game->balls[i].v.y = - game->balls[i].v.y;
 						}
 					}
+				}
+
+				if(game->rbricks == 0)
+				{
+					game->state = WON;
+					printf("Well done (score :%d) !\n", (int) game->score);
+					breakout_clear_screen(display);
 				}
 
 				ball_new_x = game->balls[i].s->x + game->balls[i].v.x*game->speed;
@@ -232,6 +245,10 @@ void game_task(void* pdata)
 
 			break;
 		case PAUSED:
+			// If a double click is done, launch the ball(s)
+			if(mtc_get_status(game->periph.mtc_handle, &mtc_event, &mtc_touchnum, &mtc_x1, &mtc_y1, &mtc_x2, &mtc_y2))
+				if(mtc_event == MTC_ST_DOUBLECLICK)
+					game->state = BALL_MOVING;
 			break;
 		default:
 			break;
@@ -241,5 +258,61 @@ void game_task(void* pdata)
 		// Sleep for a while
 		//
 		OSTimeDlyHMSM(0, 0, 0, 30);
+	}
+}
+
+
+void game_status_task(void* pdata)
+{
+	game_struct * game = (game_struct*) pdata;
+
+	while(1)
+	{
+		char buffer[1024];
+		mpack_writer_t writer;
+		mpack_writer_init_buffer(&writer, buffer, sizeof(buffer));
+		//printf("lol1 \n");
+		// write the example on the msgpack homepage
+		mpack_start_map(&writer, 7);
+
+		// Game state
+		mpack_write_cstr(&writer, "state");
+		mpack_write_i32(&writer, game->state);
+
+		// Game state
+		mpack_write_cstr(&writer, "lives");
+		mpack_write_i32(&writer, game->lives);
+
+		// Game state
+		mpack_write_cstr(&writer, "balls");
+		mpack_write_i32(&writer, game->balls[0].enabled + game->balls[1].enabled);
+
+		// Game state
+		mpack_write_cstr(&writer, "bricks");
+		mpack_write_i32(&writer, game->rbricks);
+
+		// Game state
+		mpack_write_cstr(&writer, "padsize");
+		mpack_write_i32(&writer, game->paddle->width);
+
+		// Game state
+		mpack_write_cstr(&writer, "speed");
+		mpack_write_i32(&writer, game->speed);
+
+		// Game state
+		mpack_write_cstr(&writer, "score");
+		mpack_write_i32(&writer, game->score);
+
+		mpack_finish_map(&writer);
+
+		// clean up
+		size_t count = mpack_writer_buffer_used(&writer);
+		mpack_writer_destroy(&writer);
+
+		pic32_sendrpc(game->periph.pic32_handle, buffer, count, CYCLONE_RPC_INFO);
+
+
+		OSTimeDlyHMSM(0, 0, 1, 0);
+		//printf("lol2 \n");
 	}
 }

@@ -108,10 +108,31 @@
 #define  MyAPP_INIT
 #endif
 
-MyAPP_EXT  int      MyTime;
-MyAPP_EXT  int      pbClk;
-MyAPP_EXT  int      MyPing_Flag MyAPP_INIT;
-MyAPP_EXT  int      MyMail_Flag MyAPP_INIT;
+typedef enum {
+	PAUSED = 0,
+	NOT_MOVING = 1,
+	BALL_MOVING = 2,
+	NOGAME = 3,
+	LOST = 4,
+	WON = 5
+} game_state;
+
+typedef struct {
+    game_state  state;
+    int         nbballs;
+    int         padsize;
+    int         speed;
+    int         lives;
+    int         rbricks;
+    int         score;
+} game_struct;
+
+
+MyAPP_EXT  int         MyTime;
+MyAPP_EXT  int         pbClk;
+MyAPP_EXT  int         MyPing_Flag MyAPP_INIT;
+MyAPP_EXT  int         MyMail_Flag MyAPP_INIT;
+MyAPP_EXT  game_struct MyGame;
 
 /*******************************************************************************
 * System Macros                                                                *

@@ -1,3 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?><project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/1"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/1">
+        <file>file:/C:/Users/Anthony/Documents/LELEC2103/pic32software/MyIncludes/MyMIWI.h</file>
+        <file>file:/C:/Users/Anthony/Documents/LELEC2103/pic32software/MyConfig/MyConfig_MIWI/ConfigApp.h</file>
+        <file>file:/C:/Users/Anthony/Documents/LELEC2103/pic32software/MyIncludes/MyApp.h</file>
+        <file>file:/C:/Users/Anthony/Documents/LELEC2103/pic32software/MyFiles/MyConsole.c</file>
+        <file>file:/C:/Users/Anthony/Documents/LELEC2103/pic32software/MyFiles/MyCyclone.c</file>
+        <file>file:/C:/Users/Anthony/Documents/LELEC2103/pic32software/MyIncludes/MyCyclone.h</file>
+        <file>file:/C:/Users/Anthony/Documents/LELEC2103/pic32software/MyFiles/MySPI.c</file>
+        <file>file:/C:/Users/Anthony/Documents/LELEC2103/pic32software/MyIncludes/MySPI.h</file>
+        <file>file:/C:/Users/Anthony/Documents/LELEC2103/pic32software/MyFiles/MyRPC.c</file>
+        <file>file:/C:/Users/Anthony/Documents/LELEC2103/pic32software/MyIncludes/MyRPC.h</file>
+        <file>file:/C:/Users/Anthony/Documents/LELEC2103/pic32software/MyFiles/MyHTTP.c</file>
+        <file>file:/C:/Users/Anthony/Documents/LELEC2103/pic32software/MyConfig/MyConfig_WIFI/HardwareProfile_WIFI.h</file>
+        <file>file:/C:/Users/Anthony/Documents/LELEC2103/pic32software/MyConfig/MyConfig_WIFI/TCPIPConfig.h</file>
+        <file>file:/C:/Users/Anthony/Documents/LELEC2103/pic32software/MyConfig/MyConfig_WIFI/WF_Config.h</file>
+        <file>file:/C:/Users/Anthony/Documents/LELEC2103/pic32software/MyFiles/MyApp.c</file>
+        <file>file:/C:/Users/Anthony/Documents/LELEC2103/pic32software/MyFiles/MyFlash.c</file>
+    </open-files>
 </project-private>

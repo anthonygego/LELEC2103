@@ -5,6 +5,7 @@
 
 #define CYCLONE_RPC_MIWI		0
 #define CYCLONE_RPC_FILE		1
+#define CYCLONE_RPC_INFO        2
 
 #define CYCLONE_TXDATA          0
 #define CYCLONE_RXDATA          1

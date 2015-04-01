@@ -73,6 +73,8 @@ void breakout_init(game_struct * g, char * level)
 	breakout_clear_screen(display);
 
 	// Initialize bricks
+	g->rbricks = 0;
+
 	int i, j;
 	for(i=0; i< 12; i++)
 	{
@@ -85,18 +87,22 @@ void breakout_init(game_struct * g, char * level)
 			{
 			case '1':
 				g->bricks[i*14+j].s = sprite_init(45+j*50+j, 45+i*20+i, 50, 20, (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK0, 50, 0);
+				g->rbricks++;
 				j++;
 				break;
 			case '2':
 				g->bricks[i*14+j].s = sprite_init(45+j*50+j, 45+i*20+i, 50, 20, (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK1, 50, 0);
+				g->rbricks++;
 				j++;
 				break;
 			case '3':
 				g->bricks[i*14+j].s = sprite_init(45+j*50+j, 45+i*20+i, 50, 20, (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK2, 50, 0);
+				g->rbricks++;
 				j++;
 				break;
 			case '4':
 				g->bricks[i*14+j].s = sprite_init(45+j*50+j, 45+i*20+i, 50, 20, (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK3, 50, 0);
+				g->rbricks++;
 				j++;
 				break;
 			case '*':

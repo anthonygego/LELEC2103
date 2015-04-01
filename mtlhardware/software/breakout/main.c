@@ -20,6 +20,7 @@
 #define     TASK_STACKSIZE       2048
 OS_STK      graphics_task_stk    [TASK_STACKSIZE];
 OS_STK      game_task_stk        [TASK_STACKSIZE];
+OS_STK      game_status_task_stk [TASK_STACKSIZE];
 OS_STK      rpc_task_stk         [TASK_STACKSIZE];
 OS_STK      console_task_stk     [TASK_STACKSIZE];
 
@@ -28,8 +29,9 @@ OS_STK      console_task_stk     [TASK_STACKSIZE];
 
 #define GRAPHICS_TASK_PRIORITY     1
 #define GAME_TASK_PRIORITY         2
-#define RPC_TASK_PRIORITY          3
-#define CONSOLE_TASK_PRIORITY      4
+#define GAME_STATUS_TASK_PRIORITY  3
+#define RPC_TASK_PRIORITY          4
+#define CONSOLE_TASK_PRIORITY      5
 
 int main(void)
 {
@@ -71,6 +73,17 @@ int main(void)
 				  GAME_TASK_PRIORITY,
 				  GAME_TASK_PRIORITY,
 				  game_task_stk,
+				  TASK_STACKSIZE,
+				  NULL,
+				  0);
+
+	// Create Game status task
+	OSTaskCreateExt(game_status_task,
+				  (void *)&game,
+				  (void *)&game_status_task_stk[TASK_STACKSIZE-1],
+				  GAME_STATUS_TASK_PRIORITY,
+				  GAME_STATUS_TASK_PRIORITY,
+				  game_status_task_stk,
 				  TASK_STACKSIZE,
 				  NULL,
 				  0);

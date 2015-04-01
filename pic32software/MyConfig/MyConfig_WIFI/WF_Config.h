@@ -92,7 +92,7 @@
 /*--------------------------------------------*/
 /* Default settings for Connection Management */
 /*--------------------------------------------*/
-#define MY_DEFAULT_SSID_NAME                "MicrochipDemoAP"
+#define MY_DEFAULT_SSID_NAME                "Fourmimiel"
 
 #define MY_DEFAULT_NETWORK_TYPE             WF_ADHOC   /* WF_INFRASTRUCTURE or WF_ADHOC     */
 

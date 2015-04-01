@@ -34,10 +34,12 @@ typedef enum {
 } game_event;
 
 typedef enum {
-	PAUSED,
-	NOT_MOVING,
-	BALL_MOVING,
-	NOGAME
+	PAUSED = 0,
+	NOT_MOVING = 1,
+	BALL_MOVING = 2,
+	NOGAME = 3,
+	LOST = 4,
+	WON = 5
 } game_state;
 
 typedef struct {
@@ -73,6 +75,7 @@ typedef struct {
 	sprite    * walls[3];
 	alt_8       speed;
 	alt_8       lives;
+	alt_8       rbricks;
 	alt_32      score;
 	queue     * events_queue;
 } game_struct;
