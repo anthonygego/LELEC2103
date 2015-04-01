@@ -847,6 +847,12 @@ static void HTTPProcess(void)
 				TCPPutROMString(sktHTTP, (ROM BYTE*)httpContentTypes[curHTTP.fileType]);
 				TCPPutROMString(sktHTTP, HTTP_CRLF);
 			}
+
+                        // Output the gzip encoding header if needed
+			if(MPFSGetFlags(curHTTP.file) & MPFS2_FLAG_ISZIPPED)
+			{
+                            TCPPutROMString(sktHTTP, (ROM BYTE*)"Content-Encoding: gzip\r\n");
+			}
 						
 			// Output the cache-control
 			TCPPutROMString(sktHTTP, (ROM BYTE*)"Cache-Control: ");

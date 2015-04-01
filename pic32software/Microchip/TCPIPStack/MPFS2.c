@@ -2,7 +2,7 @@
  *
  *	Microchip File System (MPFS) File Access API
  *  Module for Microchip TCP/IP Stack
- *	 -Provides single API for accessing web pages and other files 
+ *	 -Provides single API for accessing web pages and other files
  *    from internal program memory or an external serial EEPROM memory
  *	 -Reference: AN833
  *
@@ -77,7 +77,7 @@
  *         hash += byte
  *         hash <<= 1
  *
- *     Technically this means the hash only includes the 
+ *     Technically this means the hash only includes the
  *     final 15 characters of a name.
  *
  * File Record Structure (22 bytes):
@@ -112,7 +112,7 @@
   Section:
 	Module-Only Globals and Functions
   ***************************************************************************/
-  
+
 // Track the MPFS File Handles
 // MPFSStubs[0] is reserved for internal use (FAT access)
 static MPFS_STUB MPFSStubs[MAX_MPFS_HANDLES+1];
@@ -137,7 +137,7 @@ static void _Validate(void);
   Section:
 	EEPROM vs Flash Storage Settings
   ***************************************************************************/
-  
+
 #if defined(MPFS_USE_EEPROM)
 
 	// Beginning address of MPFS Image
@@ -152,7 +152,7 @@ static void _Validate(void);
 
 	// Beginning address of MPFS Image
 	#define MPFS_HEAD		MPFS_RESERVE_BLOCK
-	
+
 #else
 
 	// An address where MPFS data starts in program memory.
@@ -163,7 +163,7 @@ static void _Validate(void);
 	  	extern DWORD MPFS_Start;
 	  	#define MPFS_HEAD		MPFS_Start;
     #endif
-    
+
 #endif
 
 /****************************************************************************
@@ -190,25 +190,25 @@ static void _Validate(void);
 
   Returns:
 	None
-	
+
   Remarks:
 	This function is called only one during lifetime of the application.
   ***************************************************************************/
 void MPFSInit(void)
 {
 	BYTE i;
-	
+
 	for(i = 1; i <= MAX_MPFS_HANDLES; i++)
 	{
 		MPFSStubs[i].addr = MPFS_INVALID;
 	}
-	
+
 	#if defined(MPFS_USE_EEPROM)
     // Initialize the EEPROM access routines.
     XEEInit();
 	lastRead = MPFS_INVALID;
 	#endif
-	
+
 	#if defined(MPFS_USE_SPI_FLASH)
 	// Initialize SPI Flash access routines.
 	SPIFlashInit();
@@ -232,7 +232,7 @@ void MPFSInit(void)
 
   Description:
 	Opens a file in the MPFS2 file system.
-	
+
   Precondition:
 	None
 
@@ -249,10 +249,10 @@ MPFS_HANDLE MPFSOpen(BYTE* cFile)
 	WORD nameHash, i;
 	WORD hashCache[8];
 	BYTE *ptr, c;
-	
+
 	// Initialize c to avoid "may be used uninitialized" compiler warning
 	c = 0;
-	
+
 	// Make sure MPFS is unlocked and we got a filename
 	if(*cFile == '\0' || isMPFSLocked == TRUE)
 		return MPFS_INVALID_HANDLE;
@@ -263,14 +263,14 @@ MPFS_HANDLE MPFSOpen(BYTE* cFile)
 		nameHash += *ptr;
 		nameHash <<= 1;
 	}
-	
+
 	// Find a free file handle to use
 	for(hMPFS = 1; hMPFS <= MAX_MPFS_HANDLES; hMPFS++)
 		if(MPFSStubs[hMPFS].addr == MPFS_INVALID)
 			break;
 	if(hMPFS == MAX_MPFS_HANDLES)
 		return MPFS_INVALID_HANDLE;
-		
+
 	// Read in hashes, and check remainder on a match.  Store 8 in cache for performance
 	for(i = 0; i < numFiles; i++)
 	{
@@ -281,14 +281,14 @@ MPFS_HANDLE MPFSOpen(BYTE* cFile)
 			MPFSStubs[0].bytesRem = 16;
 			MPFSGetArray(0, (BYTE*)hashCache, 16);
 		}
-		
+
 		// If the hash matches, compare the full filename
 		if(hashCache[i&0x07] == nameHash)
 		{
 			_LoadFATRecord(i);
 			MPFSStubs[0].addr = fatCache.string;
 			MPFSStubs[0].bytesRem = 255;
-			
+
 			// Loop over filename to perform comparison
 			for(ptr = cFile; *ptr != '\0'; ptr++)
 			{
@@ -296,7 +296,7 @@ MPFS_HANDLE MPFSOpen(BYTE* cFile)
 				if(*ptr != c)
 					break;
 			}
-			
+
 			MPFSGet(0, &c);
 
 			if(c == '\0' && *ptr == '\0')
@@ -304,23 +304,23 @@ MPFS_HANDLE MPFSOpen(BYTE* cFile)
 				MPFSStubs[hMPFS].addr = fatCache.data;
 				MPFSStubs[hMPFS].bytesRem = fatCache.len;
 				MPFSStubs[hMPFS].fatID = i;
-                
+
 				return hMPFS;
 			}
 		}
 	}
-	
+
 	// No file name matched, so return nothing
 	return MPFS_INVALID_HANDLE;
 }
 
 /*****************************************************************************
   Function:
-	MPFS_HANDLE MPFSOpenROM(ROM BYTE* cFile) 
+	MPFS_HANDLE MPFSOpenROM(ROM BYTE* cFile)
 
   Description:
 	Opens a file in the MPFS2 file system.
-	
+
   Precondition:
 	None
 
@@ -335,14 +335,14 @@ MPFS_HANDLE MPFSOpen(BYTE* cFile)
 	This function is aliased to MPFSOpen on non-PIC18 platforms.
   ***************************************************************************/
 #if defined(__18CXX)
-MPFS_HANDLE MPFSOpenROM(ROM BYTE* cFile) 
+MPFS_HANDLE MPFSOpenROM(ROM BYTE* cFile)
 {
 	MPFS_HANDLE hMPFS;
 	WORD nameHash, i;
 	WORD hashCache[8];
 	ROM BYTE *ptr;
 	BYTE c;
-	
+
 	// Make sure MPFS is unlocked and we got a filename
 	if(*cFile == '\0' || isMPFSLocked == TRUE)
 		return MPFS_INVALID_HANDLE;
@@ -353,14 +353,14 @@ MPFS_HANDLE MPFSOpenROM(ROM BYTE* cFile)
 		nameHash += *ptr;
 		nameHash <<= 1;
 	}
-	
+
 	// Find a free file handle to use
 	for(hMPFS = 1; hMPFS <= MAX_MPFS_HANDLES; hMPFS++)
 		if(MPFSStubs[hMPFS].addr == MPFS_INVALID)
 			break;
 	if(hMPFS == MAX_MPFS_HANDLES)
 		return MPFS_INVALID_HANDLE;
-		
+
 	// Read in hashes, and check remainder on a match.  Store 8 in cache for performance
 	for(i = 0; i < numFiles; i++)
 	{
@@ -371,14 +371,14 @@ MPFS_HANDLE MPFSOpenROM(ROM BYTE* cFile)
 			MPFSStubs[0].bytesRem = 16;
 			MPFSGetArray(0, (BYTE*)hashCache, 16);
 		}
-		
+
 		// If the hash matches, compare the full filename
 		if(hashCache[i&0x07] == nameHash)
 		{
 			_LoadFATRecord(i);
 			MPFSStubs[0].addr = fatCache.string;
 			MPFSStubs[0].bytesRem = 255;
-			
+
 			// Loop over filename to perform comparison
 			for(ptr = cFile; *ptr != '\0'; ptr++)
 			{
@@ -386,7 +386,7 @@ MPFS_HANDLE MPFSOpenROM(ROM BYTE* cFile)
 				if(*ptr != c)
 					break;
 			}
-			
+
 			MPFSGet(0, &c);
 
 			if(c == '\0' && *ptr == '\0')
@@ -398,7 +398,7 @@ MPFS_HANDLE MPFSOpenROM(ROM BYTE* cFile)
 			}
 		}
 	}
-	
+
 	// No file name matched, so return nothing
 	return MPFS_INVALID_HANDLE;
 }
@@ -415,7 +415,7 @@ MPFS_HANDLE MPFSOpenROM(ROM BYTE* cFile)
 	Quickly re-opens a file in the MPFS2 file system.  Use this function
 	along with MPFSGetID() to quickly re-open a file without tying up
 	a permanent MPFSStub.
-	
+
   Precondition:
 	None
 
@@ -429,7 +429,7 @@ MPFS_HANDLE MPFSOpenROM(ROM BYTE* cFile)
 MPFS_HANDLE MPFSOpenID(WORD hFatID)
 {
 	MPFS_HANDLE hMPFS;
-	
+
 	// Make sure MPFS is unlocked and we got a valid id
 	if(isMPFSLocked == TRUE || hFatID > numFiles)
 		return MPFS_INVALID_HANDLE;
@@ -440,15 +440,15 @@ MPFS_HANDLE MPFSOpenID(WORD hFatID)
 			break;
 	if(hMPFS == MAX_MPFS_HANDLES)
 		return MPFS_INVALID_HANDLE;
-	
+
 	// Load the FAT record
 	_LoadFATRecord(hFatID);
-		
+
 	// Set up the file handle
 	MPFSStubs[hMPFS].fatID = hFatID;
 	MPFSStubs[hMPFS].addr = fatCache.data;
 	MPFSStubs[hMPFS].bytesRem = fatCache.len;
-	
+
 	return hMPFS;
 }
 
@@ -460,9 +460,9 @@ MPFS_HANDLE MPFSOpenID(WORD hFatID)
 	Closes a file.
 
   Description:
-	Closes a file and releases its stub back to the pool of available 
+	Closes a file and releases its stub back to the pool of available
 	handles.
-	
+
   Precondition:
 	None
 
@@ -490,7 +490,7 @@ void MPFSClose(MPFS_HANDLE hMPFS)
 
   Description:
 	Reads a byte from a file.
-	
+
   Precondition:
 	The file handle referenced by hMPFS is already open.
 
@@ -529,6 +529,7 @@ BOOL MPFSGet(MPFS_HANDLE hMPFS, BYTE* c)
 		lastRead = MPFSStubs[hMPFS].addr;
 		MPFSStubs[hMPFS].addr++;
 	#elif defined(MPFS_USE_SPI_FLASH)
+        SPIFlashReadArray(MPFSStubs[hMPFS].addr + MPFS_HEAD, c, 1);
         MPFSStubs[hMPFS].addr++;
 	#else
 		#if defined(__C30__)
@@ -536,19 +537,19 @@ BOOL MPFSGet(MPFS_HANDLE hMPFS, BYTE* c)
 			DWORD addr;
 			DWORD_VAL read;
 			BYTE i;
-	
+
 			// MPFS Images are addressed by the byte; Program memory by the word.
 			//
 			// Flash program memory is 24 bits wide and only even words are
 			// implemented.  The upper byte of the upper word is read as 0x00.
 			// Address in program memory of any given byte is (MPFSAddr * 2) / 3
 			//
-			// We will read 24 bits at a time, but need to support using only 
+			// We will read 24 bits at a time, but need to support using only
 			// fractions of the first and last byte.
-			
+
 			// Find the beginning address in program memory.
 			addr = (MPFSStubs[hMPFS].addr / 3) << 1;
-			
+
 			// Find where to start in that first 3 bytes
 			read.Val = (addr * 3) >> 1;
 			if(read.Val == MPFSStubs[hMPFS].addr)
@@ -557,17 +558,17 @@ BOOL MPFSGet(MPFS_HANDLE hMPFS, BYTE* c)
 				i = 1;
 			else
 				i = 2;
-	
+
 			// Add in the MPFS starting address offset
 			addr += MPFS_HEAD;
-			
+
 			// Update the MPFS Handle
 			MPFSStubs[hMPFS].addr++;
-			
-			// Read the DWORD 
+
+			// Read the DWORD
 			read.Val = ReadProgramMemory(addr & 0x00FFFFFF);
 			*c = read.v[i];
-			
+
 		}
 		#else
 		{
@@ -577,7 +578,7 @@ BOOL MPFSGet(MPFS_HANDLE hMPFS, BYTE* c)
 		}
 		#endif
 	#endif
-	
+
 	MPFSStubs[hMPFS].bytesRem--;
 	return TRUE;
 }
@@ -588,7 +589,7 @@ BOOL MPFSGet(MPFS_HANDLE hMPFS, BYTE* c)
 
   Description:
 	Reads a series of bytes from a file.
-	
+
   Precondition:
 	The file handle referenced by hMPFS is already open.
 
@@ -598,15 +599,15 @@ BOOL MPFSGet(MPFS_HANDLE hMPFS, BYTE* c)
 	wLen - how many bytes to read
 
   Returns:
-	The number of bytes successfully read.  If this is less than wLen, 
+	The number of bytes successfully read.  If this is less than wLen,
 	an EOF occurred while attempting to read.
   ***************************************************************************/
 WORD MPFSGetArray(MPFS_HANDLE hMPFS, BYTE* cData, WORD wLen)
-{	
+{
 	// Make sure we're reading a valid address
 	if(hMPFS > MAX_MPFS_HANDLES)
 		return 0;
-		
+
 	// Determine how many we can actually read
 	if(wLen > MPFSStubs[hMPFS].bytesRem)
 		wLen = MPFSStubs[hMPFS].bytesRem;
@@ -614,14 +615,14 @@ WORD MPFSGetArray(MPFS_HANDLE hMPFS, BYTE* cData, WORD wLen)
 	// Make sure we're reading a valid address
 	if(MPFSStubs[hMPFS].addr == MPFS_INVALID || wLen == 0u)
 		return 0;
-		
+
 	if(cData == NULL)
 	{
 		MPFSStubs[hMPFS].addr += wLen;
 		MPFSStubs[hMPFS].bytesRem -= wLen;
 		return wLen;
 	}
-	
+
 	// Read the data
 	#if defined(MPFS_USE_EEPROM)
 		XEEReadArray(MPFSStubs[hMPFS].addr+MPFS_HEAD, cData, wLen);
@@ -629,6 +630,7 @@ WORD MPFSGetArray(MPFS_HANDLE hMPFS, BYTE* cData, WORD wLen)
 		MPFSStubs[hMPFS].bytesRem -= wLen;
 		lastRead = MPFS_INVALID;
 	#elif defined(MPFS_USE_SPI_FLASH)
+        SPIFlashReadArray(MPFSStubs[hMPFS].addr+MPFS_HEAD, cData, wLen);
         MPFSStubs[hMPFS].addr += wLen;
 		MPFSStubs[hMPFS].bytesRem -= wLen;
 	#else
@@ -638,19 +640,19 @@ WORD MPFSGetArray(MPFS_HANDLE hMPFS, BYTE* cData, WORD wLen)
 			DWORD_VAL read;
 			WORD count;
 			BYTE i;
-	
+
 			// MPFS Images are addressed by the byte; Program memory by the word.
 			//
 			// Flash program memory is 24 bits wide and only even words are
 			// implemented.  The upper byte of the upper word is read as 0x00.
 			// Address in program memory of any given byte is (MPFSAddr * 2) / 3
 			//
-			// We will read 24 bits at a time, but need to support using only 
+			// We will read 24 bits at a time, but need to support using only
 			// fractions of the first and last byte.
-			
+
 			// Find the beginning address in program memory.
 			addr = (MPFSStubs[hMPFS].addr / 3) << 1;
-			
+
 			// Find where to start in that first 3 bytes
 			read.Val = (addr * 3) >> 1;
 			if(read.Val == MPFSStubs[hMPFS].addr)
@@ -659,24 +661,24 @@ WORD MPFSGetArray(MPFS_HANDLE hMPFS, BYTE* cData, WORD wLen)
 				i = 1;
 			else
 				i = 2;
-	
+
 			// Add in the MPFS starting address offset
 			addr += MPFS_HEAD;
-			
+
 			// Update the MPFS Handle
 			MPFSStubs[hMPFS].addr += wLen;
 			MPFSStubs[hMPFS].bytesRem -= wLen;
-	
-			// Read the first DWORD 
+
+			// Read the first DWORD
 			read.Val = ReadProgramMemory(addr & 0x00FFFFFF);
 			addr += 2;
-	
+
 			// Copy values as needed
 			for(count = wLen; count > 0; cData++, count--)
 			{
 				// Copy the next value in
 				*cData = read.v[i++];
-				
+
 				// Check if a new DWORD is needed
 				if(i == 3 && count != 1)
 				{// Read in a new DWORD
@@ -685,7 +687,7 @@ WORD MPFSGetArray(MPFS_HANDLE hMPFS, BYTE* cData, WORD wLen)
 					i = 0;
 				}
 			}
-			
+
 		}
 		#else
 		{
@@ -696,7 +698,7 @@ WORD MPFSGetArray(MPFS_HANDLE hMPFS, BYTE* cData, WORD wLen)
 		}
 		#endif
 	#endif
-	
+
 	return wLen;
 }
 
@@ -706,7 +708,7 @@ WORD MPFSGetArray(MPFS_HANDLE hMPFS, BYTE* cData, WORD wLen)
 
   Description:
 	Reads a DWORD or Long value from the MPFS.
-	
+
   Precondition:
 	The file handle referenced by hMPFS is already open.
 
@@ -730,7 +732,7 @@ BOOL MPFSGetLong(MPFS_HANDLE hMPFS, DWORD* ul)
 
   Description:
 	Moves the current read pointer to a new location.
-	
+
   Precondition:
 	The file handle referenced by hMPFS is already open.
 
@@ -746,7 +748,7 @@ BOOL MPFSGetLong(MPFS_HANDLE hMPFS, DWORD* ul)
 BOOL MPFSSeek(MPFS_HANDLE hMPFS, DWORD dwOffset, MPFS_SEEK_MODE tMode)
 {
 	DWORD temp;
-	
+
 	// Make sure a valid file is open
 	if(hMPFS > MAX_MPFS_HANDLES)
 		return FALSE;
@@ -760,40 +762,40 @@ BOOL MPFSSeek(MPFS_HANDLE hMPFS, DWORD dwOffset, MPFS_SEEK_MODE tMode)
 			temp = MPFSGetSize(hMPFS);
 			if(dwOffset > temp)
 				return FALSE;
-			
+
 			MPFSStubs[hMPFS].addr = MPFSGetStartAddr(hMPFS) + dwOffset;
 			MPFSStubs[hMPFS].bytesRem = temp - dwOffset;
 			return TRUE;
-		
+
 		// Seek forwards offset bytes
 		case MPFS_SEEK_FORWARD:
 			if(dwOffset > MPFSStubs[hMPFS].bytesRem)
 				return FALSE;
-			
+
 			MPFSStubs[hMPFS].addr += dwOffset;
 			MPFSStubs[hMPFS].bytesRem -= dwOffset;
 			return TRUE;
-		
+
 		// Seek backwards offset bytes
 		case MPFS_SEEK_REWIND:
 			temp = MPFSGetStartAddr(hMPFS);
 			if(MPFSStubs[hMPFS].addr < temp + dwOffset)
 				return FALSE;
-			
+
 			MPFSStubs[hMPFS].addr -= dwOffset;
 			MPFSStubs[hMPFS].bytesRem += dwOffset;
 			return TRUE;
-		
+
 		// Seek so that offset bytes remain in file
 		case MPFS_SEEK_END:
 			temp = MPFSGetSize(hMPFS);
 			if(dwOffset > temp)
 				return FALSE;
-			
+
 			MPFSStubs[hMPFS].addr = MPFSGetEndAddr(hMPFS) - dwOffset;
 			MPFSStubs[hMPFS].bytesRem = dwOffset;
 			return TRUE;
-		
+
 		default:
 			return FALSE;
 	}
@@ -808,14 +810,14 @@ BOOL MPFSSeek(MPFS_HANDLE hMPFS, DWORD dwOffset, MPFS_SEEK_MODE tMode)
 /*****************************************************************************
   Function:
 	MPFS_HANDLE MPFSFormat(void)
-	
+
   Summary:
 	Prepares the MPFS image for writing.
 
   Description:
 	Prepares the MPFS image for writing and locks the image so that other
 	processes may not access it.
-	
+
   Precondition:
 	None
 
@@ -823,12 +825,12 @@ BOOL MPFSSeek(MPFS_HANDLE hMPFS, DWORD dwOffset, MPFS_SEEK_MODE tMode)
 	None
 
   Returns:
-	An MPFS handle that can be used for MPFSPut commands, or 
+	An MPFS handle that can be used for MPFSPut commands, or
 	MPFS_INVALID_HANDLE when the EEPROM failed to initialize for writing.
 
   Remarks:
-	In order to prevent misreads, the MPFS will be inaccessible until 
-	MPFSClose is called.  This function is not available when the MPFS 
+	In order to prevent misreads, the MPFS will be inaccessible until
+	MPFSClose is called.  This function is not available when the MPFS
 	is stored in internal Flash program memory.
   ***************************************************************************/
 #if defined(MPFS_USE_EEPROM) || defined(MPFS_USE_SPI_FLASH)
@@ -836,24 +838,24 @@ MPFS_HANDLE MPFSFormat(void)
 {
 
 	BYTE i;
-	
+
 	// Close all files
 	for(i = 0; i < MAX_MPFS_HANDLES; i++)
 		MPFSStubs[i].addr = MPFS_INVALID;
-	
+
 	// Lock the image
 	isMPFSLocked = TRUE;
-	
+
 	#if defined(MPFS_USE_EEPROM)
 		// Set FAT ptr for writing
 		MPFSStubs[0].addr = 0;
 		MPFSStubs[0].fatID = 0xffff;
 		MPFSStubs[0].bytesRem = MPFS_WRITE_PAGE_SIZE - ( ((BYTE)MPFSStubs[0].addr+MPFS_HEAD) & (MPFS_WRITE_PAGE_SIZE-1) );
-		
+
 		// Set up EEPROM for writing
 		if( XEEBeginWrite(MPFSStubs[0].addr+MPFS_HEAD) == XEE_SUCCESS )
 			return 0x00;
-	
+
 		return MPFS_INVALID_HANDLE;
 	#else
 		// Set up SPI Flash for writing
@@ -862,14 +864,14 @@ MPFS_HANDLE MPFSFormat(void)
 	#endif
 }
 #endif
-	
+
 /*****************************************************************************
   Function:
 	WORD MPFSPutArray(MPFS_HANDLE hMPFS, BYTE *cData, WORD wLen)
 
   Description:
 	Writes an array of data to the MPFS image.
-	
+
   Precondition:
 	MPFSFormat was sucessfully called.
 
@@ -882,8 +884,8 @@ MPFS_HANDLE MPFSFormat(void)
 	The number of bytes successfully written.
 
   Remarks:
-	For EEPROM, the actual write may not initialize until the internal write 
-	page is full.  To ensure that previously written data gets stored, 
+	For EEPROM, the actual write may not initialize until the internal write
+	page is full.  To ensure that previously written data gets stored,
 	MPFSPutEnd must be called after the last call to MPFSPutArray.
   ***************************************************************************/
 #if defined(MPFS_USE_EEPROM) || defined(MPFS_USE_SPI_FLASH)
@@ -892,14 +894,14 @@ WORD MPFSPutArray(MPFS_HANDLE hMPFS, BYTE* cData, WORD wLen)
 	#if defined(MPFS_USE_EEPROM)
 		// Write to the EEPROM
 		WORD count;
-		
+
 		for(count = 0; count < wLen; count++)
 		{
 			XEEWrite(cData[count]);
-			
+
 			MPFSStubs[hMPFS].addr++;
 			MPFSStubs[hMPFS].bytesRem--;
-			
+
 			if(MPFSStubs[hMPFS].bytesRem == 0u)
 			{
 				MPFSPutEnd(FALSE);
@@ -908,9 +910,9 @@ WORD MPFSPutArray(MPFS_HANDLE hMPFS, BYTE* cData, WORD wLen)
 				MPFSStubs[hMPFS].bytesRem = MPFS_WRITE_PAGE_SIZE;
 			}
 		}
-		
+
 		return count;
-	
+
 	#else
 		// Write to the SPI Flash
 		SPIFlashWriteArray(cData, wLen);
@@ -925,7 +927,7 @@ WORD MPFSPutArray(MPFS_HANDLE hMPFS, BYTE* cData, WORD wLen)
 
   Description:
 	Finalizes an MPFS writing operation.
-	
+
   Precondition:
 	MPFSFormat and MPFSPutArray were sucessfully called.
 
@@ -940,12 +942,12 @@ WORD MPFSPutArray(MPFS_HANDLE hMPFS, BYTE* cData, WORD wLen)
 void MPFSPutEnd(BOOL final)
 {
 	isMPFSLocked = FALSE;
-	
+
 	#if defined(MPFS_USE_EEPROM)
 	    XEEEndWrite();
     	while(XEEIsBusy());
     #endif
-    
+
 	if(final)
 		_Validate();
 }
@@ -963,7 +965,7 @@ void MPFSPutEnd(BOOL final)
 
   Description:
 	Loads the FAT record for a specified handle.
-	
+
   Precondition:
 	None
 
@@ -980,7 +982,7 @@ static void _LoadFATRecord(WORD fatID)
 {
 	if(fatID == fatCacheID || fatID >= numFiles)
 		return;
-	
+
 	// Read the FAT record to the cache
 	MPFSStubs[0].bytesRem = 22;
 	MPFSStubs[0].addr = 8 + numFiles*2 + fatID*22;
@@ -994,7 +996,7 @@ static void _LoadFATRecord(WORD fatID)
 
   Description:
 	Reads the timestamp for the specified file.
-	
+
   Precondition:
 	The file handle referenced by hMPFS is already open.
 
@@ -1011,7 +1013,7 @@ DWORD MPFSGetTimestamp(MPFS_HANDLE hMPFS)
 		return 0x00000000;
 	if(MPFSStubs[hMPFS].addr == MPFS_INVALID)
 		return 0x00000000;
-	
+
 	// Move to the point for reading
 	_LoadFATRecord(MPFSStubs[hMPFS].fatID);
 	return fatCache.timestamp;
@@ -1023,7 +1025,7 @@ DWORD MPFSGetTimestamp(MPFS_HANDLE hMPFS)
 
   Description:
 	Reads the microtime portion of a file's timestamp.
-	
+
   Precondition:
 	The file handle referenced by hMPFS is already open.
 
@@ -1040,7 +1042,7 @@ DWORD MPFSGetMicrotime(MPFS_HANDLE hMPFS)
 		return 0x00000000;
 	if(MPFSStubs[hMPFS].addr == MPFS_INVALID)
 		return 0x00000000;
-	
+
 	// Move to the point for reading
 	_LoadFATRecord(MPFSStubs[hMPFS].fatID);
 	return fatCache.microtime;
@@ -1052,7 +1054,7 @@ DWORD MPFSGetMicrotime(MPFS_HANDLE hMPFS)
 
   Description:
 	Reads a file's flags.
-	
+
   Precondition:
 	The file handle referenced by hMPFS is already open.
 
@@ -1069,7 +1071,7 @@ WORD MPFSGetFlags(MPFS_HANDLE hMPFS)
 		return 0x0000;
 	if(MPFSStubs[hMPFS].addr == MPFS_INVALID)
 		return 0x0000;
-	
+
 	//move to the point for reading
 	_LoadFATRecord(MPFSStubs[hMPFS].fatID);
 	return fatCache.flags;
@@ -1081,7 +1083,7 @@ WORD MPFSGetFlags(MPFS_HANDLE hMPFS)
 
   Description:
 	Reads the size of a file.
-	
+
   Precondition:
 	The file handle referenced by hMPFS is already open.
 
@@ -1098,7 +1100,7 @@ DWORD MPFSGetSize(MPFS_HANDLE hMPFS)
 		return 0x00000000;
 	if(MPFSStubs[hMPFS].addr == MPFS_INVALID)
 		return 0x00000000;
-	
+
 	// Move to the point for reading
 	_LoadFATRecord(MPFSStubs[hMPFS].fatID);
 	return fatCache.len;
@@ -1110,7 +1112,7 @@ DWORD MPFSGetSize(MPFS_HANDLE hMPFS)
 
   Description:
 	Determines how many bytes remain to be read.
-	
+
   Precondition:
 	The file handle referenced by hMPFS is already open.
 
@@ -1127,8 +1129,8 @@ DWORD MPFSGetBytesRem(MPFS_HANDLE hMPFS)
 		return 0x00000000;
 	if(MPFSStubs[hMPFS].addr == MPFS_INVALID)
 		return 0x00000000;
-		
-	return MPFSStubs[hMPFS].bytesRem;	
+
+	return MPFSStubs[hMPFS].bytesRem;
 }
 
 /*****************************************************************************
@@ -1137,7 +1139,7 @@ DWORD MPFSGetBytesRem(MPFS_HANDLE hMPFS)
 
   Description:
 	Reads the starting address of a file.
-	
+
   Precondition:
 	The file handle referenced by hMPFS is already open.
 
@@ -1154,7 +1156,7 @@ MPFS_PTR MPFSGetStartAddr(MPFS_HANDLE hMPFS)
 		return 0;
 	if(MPFSStubs[hMPFS].addr == MPFS_INVALID)
 		return MPFS_INVALID;
-	
+
 	// Move to the point for reading
 	_LoadFATRecord(MPFSStubs[hMPFS].fatID);
 	return fatCache.data;
@@ -1166,7 +1168,7 @@ MPFS_PTR MPFSGetStartAddr(MPFS_HANDLE hMPFS)
 
   Description:
 	Determines the ending address of a file.
-	
+
   Precondition:
 	The file handle referenced by hMPFS is already open.
 
@@ -1183,7 +1185,7 @@ MPFS_PTR MPFSGetEndAddr(MPFS_HANDLE hMPFS)
 		return MPFS_INVALID;
 	if(MPFSStubs[hMPFS].addr == MPFS_INVALID)
 		return MPFS_INVALID;
-	
+
 	// Move to the point for reading
 	_LoadFATRecord(MPFSStubs[hMPFS].fatID);
 	return fatCache.data + fatCache.len;
@@ -1195,7 +1197,7 @@ MPFS_PTR MPFSGetEndAddr(MPFS_HANDLE hMPFS)
 
   Description:
 	Reads the file name of a file that is already open.
-	
+
   Precondition:
 	The file handle referenced by hMPFS is already open.
 
@@ -1211,19 +1213,19 @@ MPFS_PTR MPFSGetEndAddr(MPFS_HANDLE hMPFS)
 BOOL MPFSGetFilename(MPFS_HANDLE hMPFS, BYTE* cName, WORD wLen)
 {
 	DWORD addr;
-	
+
 	// Make sure a valid file is open
 	if(hMPFS > MAX_MPFS_HANDLES)
 		return FALSE;
 	if(MPFSStubs[hMPFS].addr == MPFS_INVALID)
 		return FALSE;
-	
+
 	// Move to the point for reading
 	_LoadFATRecord(MPFSStubs[hMPFS].fatID);
 	addr = fatCache.string;
 	MPFSStubs[0].addr = addr;
 	MPFSStubs[0].bytesRem = 255;
-	
+
 	// Read the value and return
 	MPFSGetArray(0, cName, wLen);
 	return TRUE;
@@ -1235,7 +1237,7 @@ BOOL MPFSGetFilename(MPFS_HANDLE hMPFS, BYTE* cName, WORD wLen)
 
   Description:
 	Determines the current position in the file
-	
+
   Precondition:
 	The file handle referenced by hMPFS is already open.
 
@@ -1261,7 +1263,7 @@ DWORD MPFSGetPosition(MPFS_HANDLE hMPFS)
 
   Description:
 	Determines the ID in the FAT for a file.
-	
+
   Precondition:
 	The file handle referenced by hMPFS is already open.
 
@@ -1294,7 +1296,7 @@ WORD MPFSGetID(MPFS_HANDLE hMPFS)
 	Validates the MPFS Image
 
   Description:
-	Verifies that the MPFS image is valid, and reads the number of 
+	Verifies that the MPFS image is valid, and reads the number of
 	available files from the image header.  This function is called on
 	boot, and again after any image is written.
 
@@ -1317,7 +1319,7 @@ static void _Validate(void)
 	// Select the MPLAB C30 tab and change Cagetory to Memory Model.
 	// Ensure that Large Code Model is selected, and that the remaining
 	//   options are set to Default.
-	
+
 	// Validate the image and update numFiles
 	MPFSStubs[0].addr = 0;
 	MPFSStubs[0].bytesRem = 8;
@@ -1327,5 +1329,5 @@ static void _Validate(void)
 	else
 		numFiles = 0;
 	fatCacheID = MPFS_INVALID_FAT;
-}	
+}
 #endif //#if defined(STACK_USE_MPFS2)
