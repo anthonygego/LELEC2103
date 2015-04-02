@@ -58,7 +58,7 @@ void game_event_pop(game_struct * g)
 			g->balls[1].enabled = 1;
 			break;
 		case SPEED_DOWN:
-			g->speed = (g->speed > 10) ? g->speed - 5 : 5;
+			g->speed = (g->speed > 15) ? g->speed - 5 : 10;
 			break;
 		case SPEED_UP:
 			g->speed = (g->speed <= 20) ? g->speed + 5 : 20;
@@ -108,7 +108,6 @@ void game_task(void* pdata)
 			game_event_pop(game);
 
 			// Update paddle and balls position
-			delta = accel_x - game->paddle->x;
 			display_move_sprite(display, game->paddle, 0, accel_x, 440);
 
 			for(i=0; i<2; i++)
@@ -123,9 +122,9 @@ void game_task(void* pdata)
 							game->walls[j]->x, game->walls[j]->y, game->walls[j]->width, game->walls[j]->height, game->walls[j]->img_base))
 					{
 						if((j+1)%2==0)
-							game->balls[i].v.y = - game->balls[i].v.y;
+							game->balls[i].v.y *= -1;
 						else
-							game->balls[i].v.x = - game->balls[i].v.x;
+							game->balls[i].v.x *= -1;
 					}
 				}
 
@@ -134,7 +133,7 @@ void game_task(void* pdata)
 						game->paddle->x, game->paddle->y, game->paddle->width, game->paddle->height, game->paddle->img_base))
 				{
 					// Collision with paddle
-					game->balls[i].v.y = - game->balls[i].v.y;
+					game->balls[i].v.y *= -1;
 				}
 
 				if(ball_new_x + BALL_WIDTH > DISPLAY_MAX_WIDTH || ball_new_y + BALL_HEIGHT > DISPLAY_MAX_HEIGHT)
@@ -185,24 +184,22 @@ void game_task(void* pdata)
 							{
 								game->rbricks--;
 								game->bricks[j].enabled = 0;
+
+								free(game->bricks[j].s);
 							}
 							else
 							{
 								// Replace brick
-								sprite * new_sprite = sprite_init(game->bricks[j].s->x, game->bricks[j].s->y, game->bricks[j].s->width,
-										game->bricks[j].s->height, (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK0+(game->bricks[j].value-2)*TEXTURE_BRICK_SIZE, 50, 0);
-
-								free(game->bricks[j].s);
-								game->bricks[j].s = new_sprite;
+								game->bricks[j].s->img_base = (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK0+(game->bricks[j].value-2)*TEXTURE_BRICK_SIZE;
 								game->bricks[j].value--;
 								display_add_sprite(display, game->bricks[j].s, 0);
 							}
 
 							// Compute new vector
 							if(collision_from == 1) // horizontal
-								game->balls[i].v.x = - game->balls[i].v.x;
+								game->balls[i].v.x *= -1;
 							else // vertical
-								game->balls[i].v.y = - game->balls[i].v.y;
+								game->balls[i].v.y *= -1;
 						}
 					}
 				}

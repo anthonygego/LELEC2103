@@ -117,7 +117,7 @@ void breakout_init(game_struct * g, char * level)
 	g->walls[2] = sprite_init(790,0, 10, 440, (alt_u32*) TEXTURES_BASE+TEXTURE_WALL, 50, 0);
 
 	// Initialize speed
-	g->speed = 5;
+	g->speed = 10;
 
 	// Initialize lives
 	g->lives = 3;

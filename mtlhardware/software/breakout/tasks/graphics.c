@@ -36,7 +36,6 @@ void graphics_isr(void * context)
 
 	// Free descriptor list
 	free((alt_sgdma_descriptor *) display->desc_current);
-	display->desc_current = 0;
 
 #ifdef DISPLAY_DO_ASYNC_TRANSFER
 	alt_sgdma_dev * sgdma = display->sgdma;
@@ -49,7 +48,11 @@ void graphics_isr(void * context)
 		display->desc_current = (alt_u32) desc;
 		alt_avalon_sgdma_do_async_transfer(sgdma, desc);
 	}
+	else
+		display->desc_current = 0;
 	OSSemPost(display->desc_queue[frame]->sem);
+#else
+	display->desc_current = 0;
 #endif
 
 }
