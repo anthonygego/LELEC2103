@@ -28,19 +28,12 @@ typedef struct{
     alt_u16 fifo_x[FIFO_SIZE];
     alt_u16 fifo_y[FIFO_SIZE];
     int pen_pressed;
-    alt_alarm alarm;
-    alt_u32 alarm_dur;
-    // time measure
-   // alt_u32 last_active_time;
-    // disabled 
-    alt_u32 next_active_time;
 }TERASIC_TOUCH_PANEL;
 
 // prototype of internal function
 void touch_isr(void* context);
 void touch_get_xy(TERASIC_TOUCH_PANEL *p);
 void touch_xy_transform(int *x, int *y);
-alt_u32 touch_alarm_callback(void *context);
 void touch_enable_penirq(TERASIC_TOUCH_PANEL *p);
 int touch_is_pen_pressed(TERASIC_TOUCH_PANEL *p);
 void touch_empty_fifo(TERASIC_TOUCH_PANEL *p);
@@ -61,7 +54,6 @@ TOUCH_HANDLE Touch_Init(const alt_u32 spi_base, const alt_u32 penirq_base, const
     p->penirq_base = penirq_base;
     p->irq_mask = 0x01;  // 1-pin
     p->penirq_irq = penirq_irq;
-    p->alarm_dur = alt_ticks_per_second()/SAMPLE_RATE;
 
     // enalbe penirq_n interrupt (P1=1, P1=0)
     touch_enable_penirq(p);    
@@ -70,18 +62,12 @@ TOUCH_HANDLE Touch_Init(const alt_u32 spi_base, const alt_u32 penirq_base, const
     IOWR_ALTERA_AVALON_PIO_IRQ_MASK(p->penirq_base, p->irq_mask); 
     // Reset the edge capture register
     IOWR_ALTERA_AVALON_PIO_EDGE_CAP(p->penirq_base,0);
+
     // register ISR
     // register callback function
     if ((alt_ic_isr_register(TOUCH_PEN_IRQ_N_IRQ_INTERRUPT_CONTROLLER_ID, p->penirq_irq,
     		touch_isr, (void *)p, NULL) != 0)){
         bSuccess = FALSE;
-    }
-
-    if (bSuccess){    
-        if (alt_alarm_start(&p->alarm, p->alarm_dur, touch_alarm_callback, p) == 0){
-        }else{
-            bSuccess = FALSE;
-        }
     }
 
     if (!bSuccess && p){
@@ -97,9 +83,7 @@ void Touch_UnInit(TOUCH_HANDLE pHandle){
     TERASIC_TOUCH_PANEL *p = (TERASIC_TOUCH_PANEL *)pHandle;
     if (!p)
         return;
-        
-    // stop alarm
-    alt_alarm_stop(&(p->alarm));
+
     // disable irq
     IOWR_ALTERA_AVALON_PIO_IRQ_MASK(p->penirq_base, 0x00);
     
@@ -131,10 +115,6 @@ int Touch_GetXY(TOUCH_HANDLE pHandle, int *x, int *y){
     //
     // translate
     touch_xy_transform(x, y);
-
-//    touch_clear_input(p);
-//    touch_empty_fifo(p);
-    p->next_active_time = alt_nticks() + ACTIVE_DELAY_TIME;
     
     return TRUE;
 }
@@ -143,11 +123,11 @@ int Touch_GetXY(TOUCH_HANDLE pHandle, int *x, int *y){
 
 // penirq_n ISR
 void touch_isr(void* context){
-    alt_u8 mask;
     TERASIC_TOUCH_PANEL *p = (TERASIC_TOUCH_PANEL *)context;
 
+    touch_get_xy(p);
     // get the edge capture mask
-    mask = IORD_ALTERA_AVALON_PIO_EDGE_CAP(p->penirq_base);
+    IORD_ALTERA_AVALON_PIO_EDGE_CAP(p->penirq_base);
     //if ((mask & Touch.irq_mask) == 0)  // 1-pin
     //    return;
     usleep(2000);
@@ -241,20 +221,6 @@ void touch_get_xy(TERASIC_TOUCH_PANEL *p){
     p->fifo_front++;
     p->fifo_front %= FIFO_SIZE;   
     
-}
-
-// polling x/y when penirq_n is low
-alt_u32 touch_alarm_callback(void *context){
-    TERASIC_TOUCH_PANEL *p = (TERASIC_TOUCH_PANEL *)context;
-    
-    if (touch_is_pen_pressed(p)){
-        if (alt_nticks() > p->next_active_time)
-            touch_get_xy(p);
-    }else{
-         touch_enable_penirq(p);
-         touch_clear_input(p);
-    }        
-    return p->alarm_dur;
 }
 
 void touch_xy_transform(int *x, int *y){
