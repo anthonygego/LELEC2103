@@ -16,7 +16,7 @@
 #include "breakout.h"
 #include "sprite.h"
 
-alt_u8 sprite_collision(alt_u16 x1, alt_u16 y1, alt_u16 w1, alt_u16 h1, alt_u32* base1, alt_u16 x2, alt_u16 y2, alt_u16 w2, alt_u16 h2, alt_u32* base2)
+alt_u8 sprite_collision(alt_u16 x1, alt_u16 y1, alt_u16 w1, alt_u16 h1, alt_u16 x2, alt_u16 y2, alt_u16 w2, alt_u16 h2)
 {
 	alt_u8 result = 0;
 	if(!((x1 + w1 < x2) || (x2 + w2 < x1) || (y1 + h1 < y2) || (y2 + h2 < y1)))
@@ -62,8 +62,8 @@ void game_event_pop(game_struct * g)
 			while(!brick_placed)
 			{
 				alt_32 rnd = rand() % NBR_BRICKS;
-				if(!g->bricks[rnd].enabled && !sprite_collision(g->ball.s->x, g->ball.s->y, g->ball.s->width, g->ball.s->height, g->ball.s->img_base,
-						g->bricks[rnd].s->x, g->bricks[rnd].s->y, g->bricks[rnd].s->width, g->bricks[rnd].s->height, g->bricks[rnd].s->img_base))
+				if(!g->bricks[rnd].enabled && !sprite_collision(g->ball.s->x, g->ball.s->y, g->ball.s->width, g->ball.s->height,
+						g->bricks[rnd].s->x, g->bricks[rnd].s->y, g->bricks[rnd].s->width, g->bricks[rnd].s->height))
 				{
 					g->bricks[rnd].enabled = 1;
 					g->bricks[rnd].value = rand()%4 + 1;
@@ -78,7 +78,7 @@ void game_event_pop(game_struct * g)
 
 			break;
 		case SPEED_DOWN:
-			g->speed = (g->speed > 15) ? g->speed - 5 : 10;
+			g->speed = (g->speed > 10) ? g->speed - 5 : 5;
 			break;
 		case SPEED_UP:
 			g->speed = (g->speed <= 20) ? g->speed + 5 : 20;
@@ -136,8 +136,8 @@ void game_task(void* pdata)
 			// Check for collision with walls and paddle
 			for(j=0; j<3; j++)
 			{
-				if(sprite_collision(ball_new_x, ball_new_y, game->ball.s->width, game->ball.s->height, game->ball.s->img_base,
-						game->walls[j]->x, game->walls[j]->y, game->walls[j]->width, game->walls[j]->height, game->walls[j]->img_base))
+				if(sprite_collision(ball_new_x, ball_new_y, game->ball.s->width, game->ball.s->height,
+						game->walls[j]->x, game->walls[j]->y, game->walls[j]->width, game->walls[j]->height))
 				{
 					if((j+1)%2==0)
 						game->ball.v.y *= -1;
@@ -147,8 +147,8 @@ void game_task(void* pdata)
 			}
 
 
-			if(sprite_collision(ball_new_x, ball_new_y, game->ball.s->width, game->ball.s->height, game->ball.s->img_base,
-					game->paddle->x, game->paddle->y, game->paddle->width, game->paddle->height, game->paddle->img_base))
+			if(sprite_collision(ball_new_x, ball_new_y, game->ball.s->width, game->ball.s->height,
+					game->paddle->x, game->paddle->y, game->paddle->width, game->paddle->height))
 			{
 				// Collision with paddle
 				game->ball.v.y *= -1;
@@ -179,8 +179,8 @@ void game_task(void* pdata)
 
 					if(game->bricks[j].enabled)
 					{
-						alt_u8 collision_from = sprite_collision(ball_new_x, ball_new_y, game->ball.s->width, game->ball.s->height, game->ball.s->img_base,
-								game->bricks[j].s->x, game->bricks[j].s->y, game->bricks[j].s->width, game->bricks[j].s->height, game->bricks[j].s->img_base);
+						alt_u8 collision_from = sprite_collision(ball_new_x, ball_new_y, game->ball.s->width, game->ball.s->height,
+								game->bricks[j].s->x, game->bricks[j].s->y, game->bricks[j].s->width, game->bricks[j].s->height);
 
 						if(collision_from)
 						{
