@@ -51,12 +51,12 @@ void console_task(void* pdata)
 			breakout_init(game, level_text);
 
 			free(level_text);
-		}else if(!strncmp(command, "AddBall", 7))
+		}else if(!strncmp(command, "AddBrick", 8))
 		{
 			printf("Add ball\n");
 			alt_u8 err;
             OSSemPend(game->events_queue->sem, 0, &err);
-			queue_push(game->events_queue, ADD_BALL);
+			queue_push(game->events_queue, ADD_BRICK);
 			OSSemPost(game->events_queue->sem);
 		}else if(!strncmp(command, "AddLife", 7))
 		{

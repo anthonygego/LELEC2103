@@ -20,7 +20,6 @@ extern BYTE curHTTPID;
 void HTTPPrint(DWORD callbackID);
 void HTTPPrint_state(void);
 void HTTPPrint_lives(void);
-void HTTPPrint_ball(void);
 void HTTPPrint_bricks(void);
 void HTTPPrint_score(void);
 void HTTPPrint_size(void);
@@ -35,9 +34,6 @@ void HTTPPrint(DWORD callbackID)
 			break;
         case 0x00000036:
 			HTTPPrint_lives();
-			break;
-        case 0x00000037:
-			HTTPPrint_ball();
 			break;
         case 0x00000038:
 			HTTPPrint_bricks();

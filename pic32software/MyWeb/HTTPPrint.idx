@@ -53,7 +53,7 @@ write_comm(1)
 write_comm(2)
 +state
 +lives
-+ball
+ball
 +bricks
 +score
 +size

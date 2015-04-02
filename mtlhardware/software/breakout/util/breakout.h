@@ -28,7 +28,7 @@ typedef enum {
 	ADD_LIFE = 0,
 	REMOVE_LIFE = 1,
 	SWITCH_PADDLE_SIZE = 2,
-	ADD_BALL = 3,
+	ADD_BRICK = 3,
 	SPEED_DOWN = 4,
 	SPEED_UP = 5
 } game_event;
@@ -50,7 +50,6 @@ typedef struct {
 typedef struct {
 	sprite * s;
 	vector   v;
-	alt_u8   enabled;
 } ball;
 
 typedef struct {
@@ -70,7 +69,7 @@ typedef struct {
 	peripherals periph;
 	game_state  state;
 	sprite    * paddle;
-	ball        balls[2];
+	ball        ball;
 	brick       bricks[168];
 	sprite    * walls[3];
 	alt_8       speed;

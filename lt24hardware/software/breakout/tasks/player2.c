@@ -42,7 +42,7 @@ void player2_task(void* pdata)
 	vid_print_string_alpha(game->lcd_handle,21 ,40 ,0xFFFFFF ,RED_16, tahomabold_20, &Display, "Life +1");
 	vid_print_string_alpha(game->lcd_handle,141 ,40 ,0xFFFFFF ,BLUE_16, tahomabold_20, &Display, "Life -1");
 	vid_print_string_alpha(game->lcd_handle,21 ,135 ,0xFFFFFF ,INDIGO_16, tahomabold_20, &Display, "Larger/ \nsmaller");
-	vid_print_string_alpha(game->lcd_handle,141 ,150 ,0xFFFFFF ,0x07E0 , tahomabold_20, &Display, "Ball +1");
+	vid_print_string_alpha(game->lcd_handle,141 ,150 ,0xFFFFFF ,0x07E0 , tahomabold_20, &Display, "Brick +1");
 	vid_print_string_alpha(game->lcd_handle,40,225,0x0 , 0xFFE0 , tahomabold_20, &Display, "Slower / Faster");
 	vid_print_string_alpha(game->lcd_handle,40,275,0x0 , 0x0F0F , tahomabold_20, &Display, " - ");
 	vid_print_string_alpha(game->lcd_handle,175,275,0x0 , 0x0F0F , tahomabold_20, &Display, "+");
@@ -91,8 +91,8 @@ void player2_task(void* pdata)
 			}
 			else if(IsPtInRect(&point, &ball))
 			{
-				printf( "Ball +1\n");
-				event = ADD_BALL;
+				printf( "Brick +1\n");
+				event = ADD_BRICK;
 				button_pressed = 1;
 			}
 			else if(IsPtInRect(&point, &plus))

@@ -101,15 +101,9 @@ void breakout_init(game_struct * g, char * level)
 	g->paddle = sprite_init(300,440, 200, 20, (alt_u32*) TEXTURES_BASE+TEXTURE_PADDLE, 100, 0);
 
 	// Initialize ball
-	g->balls[0].s = sprite_init(g->paddle->x+100,g->paddle->y-20, 20,20, (alt_u32*) TEXTURES_BASE+IMG_BALL, 0, 0x2a2a2a);
-	g->balls[0].v.x = 1;
-	g->balls[0].v.y = -1;
-	g->balls[0].enabled = 1;
-
-	g->balls[1].s = sprite_init(g->paddle->x+100,g->paddle->y-20, 20,20, (alt_u32*) TEXTURES_BASE+IMG_BALL, 0, 0x2a2a2a);
-	g->balls[1].v.x = 1;
-	g->balls[1].v.y = -1;
-	g->balls[1].enabled = 0;
+	g->ball.s = sprite_init(g->paddle->x+100,g->paddle->y-20, 20,20, (alt_u32*) TEXTURES_BASE+IMG_BALL, 0, 0x2a2a2a);
+	g->ball.v.x = 1;
+	g->ball.v.y = -1;
 
 	// Initialize walls
 	g->walls[0] = sprite_init(0,0, 10, 440, (alt_u32*) TEXTURES_BASE+TEXTURE_WALL, 50, 0);
@@ -143,8 +137,7 @@ void breakout_init(game_struct * g, char * level)
 			if(g->bricks[i*12+j].enabled) display_add_sprite(display, g->bricks[i*12+j].s, 0);
 
 	// Display ball
-	if(g->balls[0].enabled) display_add_sprite(display, g->balls[0].s, 0);
-	if(g->balls[1].enabled) display_add_sprite(display, g->balls[1].s, 0);
+	display_add_sprite(display, g->ball.s, 0);
 
 	// Display paddle
 	display_add_sprite(display, g->paddle, 1);

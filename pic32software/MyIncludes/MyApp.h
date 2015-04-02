@@ -119,7 +119,6 @@ typedef enum {
 
 typedef struct {
     game_state  state;
-    int         nbballs;
     int         padsize;
     int         speed;
     int         lives;

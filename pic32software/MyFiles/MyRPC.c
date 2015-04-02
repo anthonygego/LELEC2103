@@ -29,7 +29,6 @@ void MyRPC_Info(char * msg, size_t len)
 
     MyGame.state = mpack_node_i32(mpack_node_map_cstr(root, "state"));
     MyGame.lives = mpack_node_i32(mpack_node_map_cstr(root, "lives"));
-    MyGame.nbballs = mpack_node_i32(mpack_node_map_cstr(root, "balls"));
     MyGame.rbricks = mpack_node_i32(mpack_node_map_cstr(root, "bricks"));
     MyGame.padsize = mpack_node_i32(mpack_node_map_cstr(root, "padsize"));
     MyGame.speed = mpack_node_i32(mpack_node_map_cstr(root, "speed"));

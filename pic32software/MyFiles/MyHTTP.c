@@ -310,13 +310,6 @@ void HTTPPrint_lives(void)
     TCPPutROMString(sktHTTP, (ROM BYTE*)value);
 }
 
-void HTTPPrint_ball(void)
-{
-    char value[30];
-    sprintf(value, "%d", MyGame.nbballs);
-    TCPPutROMString(sktHTTP, (ROM BYTE*)value);
-}
-
 void HTTPPrint_bricks(void)
 {
     char value[30];
