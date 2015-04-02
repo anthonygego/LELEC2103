@@ -5,38 +5,116 @@
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <script src="js/jquery-1.11.1.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+    var game_state = ["Paused","Playing - Launch the ball !","Playing","Not playing","You lost !","You won !"];
+
+    function statusLoop() {
+        $.ajax({
+            url : 'game.json',
+            dataType: 'json',
+            cache: false,
+            timeout: 5000,
+            success : function(data) {
+                $('h4#game_status').text('Status : '+game_state[data.state]);  
+                if(data.state != 3) {
+                    $('div#game_status_list').show();
+                    $('div#game_status_list2').show();
+                    $('h4#game_status_list2').show();
+                    $.each(data, function(key, val) { $('span#'+key).text(val); });
+                }
+                else
+                {
+                    $('div#game_status_list').hide();
+                    $('div#game_status_list2').hide();
+                    $('h4#game_status_list2').hide();
+                }
+            }
+        });
+    }
+    setInterval(statusLoop, 1000);
+    </script>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h3 class="text-muted">LELEC2103 : Breakout</h3>
+            <h2 class="text-muted">LELEC2103 : Breakout</h2>
         </div>
         <hr/>
-        <h4>Start a new game</h4>
-        <form class="form-inline" method="post">
-            <div class="form-group">
-                <select class="form-control" name="level">
-                    <option value="0" selected >Select level</option> 
-                    <option value="1">Level 1</option>
-                    <option value="2">Level 2</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <button type="submit" class="btn btn-default">Launch game</button>
-            </div>
-        </form>	
+        <h3>Start a new game</h3>
+        <div>
+            <form class="form-inline" method="post">
+                <div class="form-group">
+                    <select class="form-control" name="level">
+                        <option value="0" selected >Select level</option> 
+                        <option value="1">Level 1</option>
+                        <option value="2">Level 2</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-default">Launch game</button>
+                </div>
+            </form>	
+        </div>
 
-        <h4>Game status : ~state~</h4>
-
-        <div>Lives : ~lives~</div>
-        <div>Ball(s) :~ball~</div>
-        <div>Remaining bricks : ~bricks~</div>
-        <div>Score : ~score~</div>
-        <div>Size : ~size~</div>
-        <div>Speed : ~speed~</div>
-         <hr />
+        <h3>Current game</h3>
+        <h4 id="game_status" style="margin-top:20px;">Status : Not playing</h4>
+        
+        <div id="game_status_list" style="width:280px; display:none;">
+            <div class="row">
+                <div class="col-md-4">
+                    <span class="glyphicon glyphicon-heart"></span>
+                    <span style="padding-left:5px;">Lives : </span>
+                </div>
+                <div class="col-md-2">
+                    <span id="lives">42</span>
+                </div>
+                <div class="col-md-4">
+                    <span class="glyphicon glyphicon-star"></span>
+                    <span style="padding-left:5px;">Score : </span>
+                </div>
+                <div class="col-md-2">
+                    <span id="score">42</span>
+                </div>
+            </div>
+        </div>
+        <h4 id="game_status_list2" style="margin-top:20px; display:none;">Parameters</h4>
+        <div id="game_status_list2" style="width:280px; display:none;">
+            <div class="row">
+                <div class="col-md-4">
+                    <span>Speed :</span>
+                </div>
+                <div class="col-md-2">
+                    <span id="speed">42</span>
+                </div>
+                <div class="col-md-4">
+                    <span>Bricks :</span>
+                </div>
+                <div class="col-md-2">
+                    <span id="rbricks">42</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <span>Balls :</span>
+                </div>
+                <div class="col-md-2">
+                    <span id="ball">42</span>
+                </div>
+                <div class="col-md-4">
+                    <span>Pad. size :</span>
+                </div>
+                <div class="col-md-2">
+                    <span id="size">42</span>
+                </div>
+            </div>
+        </div>
+        
+        <ul id="data">
+        </ul>
+        
+        <hr />
         <footer class="footer">
-        <p>Anthony G&eacute;go - Nicolas Marchand</p>
+        <p>2015 Anthony G&eacute;go - Nicolas Marchand</p>
         </footer>
     </div>
 </body>

@@ -25,8 +25,6 @@ void rpc_game_start(game_struct * game, alt_u8 level)
 	char * level_text;
 	size_t len;
 
-	printf("lol!!\n");
-
 	sprintf(level_file, "level%02d.txt", (int) level);
 
 	pic32_sendrpc(game->periph.pic32_handle, level_file, 12, CYCLONE_RPC_FILE);
@@ -48,7 +46,7 @@ void rpc_task(void* pdata)
 
 		if(pic32_receive(game->periph.pic32_handle, &msg, &len, 1))
 		{
-			printf("---Received RPC message of size %d !\n", len);
+			//printf("---Received RPC message of size %d !\n", len);
 			// parse a data buffer into a node tree
 			mpack_tree_t tree;
 			mpack_tree_init(&tree, msg, len);
