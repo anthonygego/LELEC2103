@@ -68,7 +68,7 @@ void game_event_pop(game_struct * g)
 					g->bricks[rnd].enabled = 1;
 					g->bricks[rnd].value = rand()%4 + 1;
 
-					g->bricks[rnd].s = sprite_init(45+(rnd%14)*50+(rnd%14), 45+(rnd/14)*20+(rnd/14), 50, 20, g->periph.display_handle->bricks_img[g->bricks[rnd].value-1], 50, 0);
+					g->bricks[rnd].s = sprite_init(45+(rnd%14)*50+(rnd%14), 45+(rnd/14)*20+(rnd/14), 50, 20, g->periph.display_handle->bricks_img[g->bricks[rnd].value-1], 0, 0);
 					g->rbricks++;
 
 					display_add_sprite(g->periph.display_handle, g->bricks[rnd].s, 0);

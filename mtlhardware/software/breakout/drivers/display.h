@@ -33,7 +33,7 @@
 
 typedef struct
 {
-    alt_u32 	    DISPLAY_BASE;
+    alt_u32 	    bg_frame_base;
     alt_u32 	    frame_buffer [4][DISPLAY_MAX_HEIGHT][DISPLAY_MAX_WIDTH];
     alt_u32			bricks_img   [4][1000];
     alt_u32			ball_img     [400];
@@ -49,7 +49,7 @@ typedef struct
     alt_sgdma_dev * sgdma;
 } display_info;
 
-display_info* display_init(alt_u32 DISPLAY_BASE, const char * sgdma_name, alt_avalon_sgdma_callback sgdma_callback, void *sgdma_context);
+display_info* display_init(alt_u32 mixer_base, alt_u32 bg_frame_base, const char * sgdma_name, alt_avalon_sgdma_callback sgdma_callback, void *sgdma_context);
 void   		  display_uninit(display_info* p);
 void          display_go(display_info* p, alt_u8 bGo);
 void          display_switch_frame(display_info* p);
@@ -59,6 +59,5 @@ void          display_remove_sprite(display_info *p, sprite *s, alt_u8 end_frame
 void          display_add_sprite(display_info *p, sprite *s, alt_u8 end_frame);
 void          display_push_desc(display_info* p, alt_sgdma_descriptor * desc, alt_u8 frame, alt_u8 end_frame);
 alt_sgdma_descriptor * display_imgcpy_desc(display_info *p, alt_u8 frame, sprite * s, void * img, int t_width, int t_height);
-alt_sgdma_descriptor * display_texcpy_desc(display_info *p, alt_u8 frame, sprite * s, void * tex, int t_size);
 
 #endif /* DISPLAY_H_ */

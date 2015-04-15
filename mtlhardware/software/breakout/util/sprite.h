@@ -9,10 +9,10 @@ typedef struct {
 	alt_u16 width;
 	alt_u16 height;
 	alt_u32 * img_base;
-	alt_u8 texture;
 	alt_u32 alpha;
+	alt_u8 type;
 } sprite;
 
-sprite * sprite_init(alt_u16 x, alt_u16 y, alt_u16 width, alt_u16 height, alt_u32 * base, alt_u8 texture, alt_u32 alpha);
+sprite * sprite_init(alt_u16 x, alt_u16 y, alt_u16 width, alt_u16 height, alt_u32 * base, alt_u32 alpha, alt_u8 type);
 
 #endif /* SPRITE_H_ */
