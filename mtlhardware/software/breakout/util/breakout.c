@@ -20,25 +20,31 @@ void breakout_create_textures(display_info * display)
 
 	for(i=-10; i<10; i++)
 		for(j=-10; j<10;j++)
-			IOWR(TEXTURES_BASE+IMG_BALL, (i+10)*20+(j+10), ((i*i+j*j) <= 90) ? 0x0 : 0x2a2a2a);
+			display->ball_img[(i+10)*20+(j+10)] =  ((i*i+j*j) <= 90) ? 0x0 : 0x2a2a2a;
 
-	for(i=0; i<100; i++)
-		IOWR(TEXTURES_BASE, TEXTURE_PADDLE+i, (i*i/10)%2==0 ? 0x505050 : 0x000000);
+	for(i=0; i<4000; i++)
+		display->paddle_img[i] =  (i*i/10)%2==0 ? 0x505050 : 0x000000;
 
-	for(i=0; i<50; i++)
-		IOWR(TEXTURES_BASE, TEXTURE_BRICK0+i, i%2==0 ? 0x005000 : 0x009000);
+	for(i=0; i<1000; i++)
+		display->bricks_img[0][i] =  i%2==0 ? 0x005000 : 0x009000;
 
-	for(i=0; i<50; i++)
-		IOWR(TEXTURES_BASE, TEXTURE_BRICK1+i, i%2==0 ? 0x000050 : 0x000090);
+	for(i=0; i<1000; i++)
+		display->bricks_img[1][i] =  i%2==0 ? 0x000050 : 0x000090;
 
-	for(i=0; i<50; i++)
-		IOWR(TEXTURES_BASE, TEXTURE_BRICK2+i, i%2==0 ? 0x500000 : 0x900000);
+	for(i=0; i<1000; i++)
+		display->bricks_img[2][i] =  i%2==0 ? 0x500000 : 0x900000;
 
-	for(i=0; i<50; i++)
-		IOWR(TEXTURES_BASE, TEXTURE_BRICK3+i, i%2==0 ? 0x005050 : 0x009090);
+	for(i=0; i<1000; i++)
+		display->bricks_img[3][i] =  i%2==0 ? 0x005050 : 0x009090;
 
-	for(i=0; i<50; i++)
-		IOWR(TEXTURES_BASE, TEXTURE_WALL+i, 0x4a4a4a);
+	for(i=0; i<4400; i++)
+		display->wall0_img[i] = 0x4a4a4a;
+
+	for(i=0; i<4400; i++)
+		display->wall1_img[i] = 0x4a4a4a;
+
+	for(i=0; i<8000; i++)
+		display->wall2_img[i] = 0x4a4a4a;
 
 	alt_dcache_flush_all();
 }
@@ -85,7 +91,7 @@ void breakout_init(game_struct * g, char * level)
 
 			if(g->bricks[i*14+j].value > 0 && g->bricks[i*14+j].value < 5)
 			{
-				g->bricks[i*14+j].s = sprite_init(45+j*50+j, 45+i*20+i, 50, 20, (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK0+(g->bricks[i*14+j].value-1)*TEXTURE_BRICK_SIZE, 50, 0);
+				g->bricks[i*14+j].s = sprite_init(45+j*50+j, 45+i*20+i, 50, 20, display->bricks_img[g->bricks[i*14+j].value-1], 50, 0);
 				g->rbricks++;
 				j++;
 			}
@@ -98,17 +104,17 @@ void breakout_init(game_struct * g, char * level)
 	}
 
 	// Initialize paddle
-	g->paddle = sprite_init(300,440, 200, 20, (alt_u32*) TEXTURES_BASE+TEXTURE_PADDLE, 100, 0);
+	g->paddle = sprite_init(300,440, 200, 20, display->paddle_img, 100, 0);
 
 	// Initialize ball
-	g->ball.s = sprite_init(g->paddle->x+100,g->paddle->y-20, 20,20, (alt_u32*) TEXTURES_BASE+IMG_BALL, 0, 0x2a2a2a);
+	g->ball.s = sprite_init(g->paddle->x+100,g->paddle->y-20, 20,20, display->ball_img, 0, 0x2a2a2a);
 	g->ball.v.x = 1;
 	g->ball.v.y = -1;
 
 	// Initialize walls
-	g->walls[0] = sprite_init(0,0, 10, 440, (alt_u32*) TEXTURES_BASE+TEXTURE_WALL, 50, 0);
-	g->walls[1] = sprite_init(0,0, 800, 10, (alt_u32*) TEXTURES_BASE+TEXTURE_WALL, 50, 0);
-	g->walls[2] = sprite_init(790,0, 10, 440, (alt_u32*) TEXTURES_BASE+TEXTURE_WALL, 50, 0);
+	g->walls[0] = sprite_init(0,0, 10, 440, display->wall0_img, 50, 0);
+	g->walls[1] = sprite_init(0,0, 800, 10, display->wall2_img, 50, 0);
+	g->walls[2] = sprite_init(790,0, 10, 440, display->wall1_img, 50, 0);
 
 	// Initialize speed
 	g->speed = 5;

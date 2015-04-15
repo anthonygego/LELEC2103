@@ -68,7 +68,7 @@ void game_event_pop(game_struct * g)
 					g->bricks[rnd].enabled = 1;
 					g->bricks[rnd].value = rand()%4 + 1;
 
-					g->bricks[rnd].s = sprite_init(45+(rnd%14)*50+(rnd%14), 45+(rnd/14)*20+(rnd/14), 50, 20, (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK0+(g->bricks[rnd].value-1)*TEXTURE_BRICK_SIZE, 50, 0);
+					g->bricks[rnd].s = sprite_init(45+(rnd%14)*50+(rnd%14), 45+(rnd/14)*20+(rnd/14), 50, 20, g->periph.display_handle->bricks_img[g->bricks[rnd].value-1], 50, 0);
 					g->rbricks++;
 
 					display_add_sprite(g->periph.display_handle, g->bricks[rnd].s, 0);
@@ -128,7 +128,7 @@ void game_task(void* pdata)
 			game_event_pop(game);
 
 			// Update paddle and balls position
-			//display_move_sprite(display, game->paddle, 0, accel_x, 440);
+			display_move_sprite(display, game->paddle, 0, accel_x, 440);
 
 			alt_u16 ball_new_x = game->ball.s->x + game->ball.v.x*game->speed;
 			alt_u16 ball_new_y = game->ball.s->y + game->ball.v.y*game->speed;
@@ -200,7 +200,7 @@ void game_task(void* pdata)
 							else
 							{
 								// Replace brick
-								game->bricks[j].s->img_base = (alt_u32*) TEXTURES_BASE+TEXTURE_BRICK0+(game->bricks[j].value-2)*TEXTURE_BRICK_SIZE;
+								game->bricks[j].s->img_base = display->bricks_img[game->bricks[j].value-2];
 								game->bricks[j].value--;
 								display_add_sprite(display, game->bricks[j].s, 0);
 							}

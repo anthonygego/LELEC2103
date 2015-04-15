@@ -242,11 +242,6 @@ assign PIC32_SDI1A = PIC32_CS_FPGA_N ? 1'bz : SDI1A;
      .adxl345_SCLK                            (I2C_SCLK),
      .adxl345_SS_n                            (G_SENSOR_CS_N),
 	  
-	  .flash_dclk                              (EPCS_DCLK),
-     .flash_sce                               (EPCS_NCSO),
-     .flash_sdo                               (EPCS_ASDO),
-     .flash_data0                             (EPCS_DATA0)
-	  
  );
 
  endmodule

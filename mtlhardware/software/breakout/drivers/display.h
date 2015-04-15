@@ -35,6 +35,12 @@ typedef struct
 {
     alt_u32 	    DISPLAY_BASE;
     alt_u32 	    frame_buffer [4][DISPLAY_MAX_HEIGHT][DISPLAY_MAX_WIDTH];
+    alt_u32			bricks_img   [4][1000];
+    alt_u32			ball_img     [400];
+    alt_u32         paddle_img	 [4000];
+    alt_u32			wall0_img [4400];
+    alt_u32			wall1_img [4400];
+    alt_u32			wall2_img [8000];
     alt_u32 	    desc_current;
     alt_u8  	    displayed_frame;
     alt_u8 		    alt_frame;

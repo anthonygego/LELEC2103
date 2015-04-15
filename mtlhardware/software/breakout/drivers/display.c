@@ -15,6 +15,7 @@ display_info* display_init(alt_u32 DISPLAY_BASE, const char * sgdma_name, alt_av
 	// Initialize frame reader info
     display_info *p = malloc(sizeof(display_info));
 
+    IOWR(VIDEO_MIXER_BASE, 0, 1);
     // Copy information
     p->DISPLAY_BASE = DISPLAY_BASE;
     p->displayed_frame = 0;
