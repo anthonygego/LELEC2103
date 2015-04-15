@@ -128,7 +128,7 @@ void game_task(void* pdata)
 			game_event_pop(game);
 
 			// Update paddle and balls position
-			display_move_sprite(display, game->paddle, 0, accel_x, 440);
+			//display_move_sprite(display, game->paddle, 0, accel_x, 440);
 
 			alt_u16 ball_new_x = game->ball.s->x + game->ball.v.x*game->speed;
 			alt_u16 ball_new_y = game->ball.s->y + game->ball.v.y*game->speed;
@@ -244,7 +244,7 @@ void game_task(void* pdata)
 			display_move_sprite(display, game->ball.s, 0, (game->ball.s->x) + delta, game->ball.s->y);
 			display_move_sprite(display, game->paddle, 1, accel_x, 440);
 
-			usleep(20000);
+			usleep(30000);
 			break;
 		case PAUSED:
 			// If a double click is done, launch the ball(s)

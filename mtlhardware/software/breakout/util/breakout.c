@@ -23,7 +23,7 @@ void breakout_create_textures(display_info * display)
 			IOWR(TEXTURES_BASE+IMG_BALL, (i+10)*20+(j+10), ((i*i+j*j) <= 90) ? 0x0 : 0x2a2a2a);
 
 	for(i=0; i<100; i++)
-		IOWR(TEXTURES_BASE, TEXTURE_PADDLE+i, (i*i/27)%2==0 ? 0x505050 : 0x000000);
+		IOWR(TEXTURES_BASE, TEXTURE_PADDLE+i, (i*i/10)%2==0 ? 0x505050 : 0x000000);
 
 	for(i=0; i<50; i++)
 		IOWR(TEXTURES_BASE, TEXTURE_BRICK0+i, i%2==0 ? 0x005000 : 0x009000);
@@ -132,9 +132,8 @@ void breakout_init(game_struct * g, char * level)
 		display_add_sprite(display, g->walls[i], 0);
 
 	// Display bricks
-	for(i=0; i< 14; i++)
-		for(j=0; j< 12; j++)
-			if(g->bricks[i*12+j].enabled) display_add_sprite(display, g->bricks[i*12+j].s, 0);
+	for(i=0; i< NBR_BRICKS; i++)
+			if(g->bricks[i].enabled) display_add_sprite(display, g->bricks[i].s, 0);
 
 	// Display ball
 	display_add_sprite(display, g->ball.s, 0);

@@ -53,7 +53,7 @@ void console_task(void* pdata)
 			free(level_text);
 		}else if(!strncmp(command, "AddBrick", 8))
 		{
-			printf("Add ball\n");
+			printf("Add brick\n");
 			alt_u8 err;
             OSSemPend(game->events_queue->sem, 0, &err);
 			queue_push(game->events_queue, ADD_BRICK);

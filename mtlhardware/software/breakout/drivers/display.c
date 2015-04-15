@@ -78,11 +78,10 @@ void display_push_desc(display_info* p, alt_sgdma_descriptor * desc, alt_u8 fram
 
 	OSSemPend(p->desc_queue[frame]->sem, 0, &err);
 	err = !queue_push(p->desc_queue[frame], (alt_u32) desc);
-	OSSemPost(p->desc_queue[frame]->sem);
 
 	if(err)
 	{
-		printf("Alert ! Descriptors queue is full !!!\n");
+		//printf("Alert ! Descriptors queue is full !!!\n");
 		free(desc);
 	}
 	else if(end_frame && frame == p->alt_frame)
@@ -91,6 +90,8 @@ void display_push_desc(display_info* p, alt_sgdma_descriptor * desc, alt_u8 fram
 		queue_push(p->switch_queue, (alt_u32) desc);
 		OSSemPost(p->switch_queue->sem);
 	}
+
+	OSSemPost(p->desc_queue[frame]->sem);
 }
 
 void display_add_sprite(display_info *p, sprite *s, alt_u8 end_frame)
