@@ -64,7 +64,8 @@ void breakout_clear_screen(display_info *display)
 {
 	// Display background
 	sprite * s = sprite_init(0,0, 800, 480, (alt_u32*) display->frame_buffer[3], 0, 0);
-	display_add_sprite(display, s, 1);
+	display_add_sprite(display, s);
+	display_end_frame(display);
 	free(s);
 }
 
@@ -130,22 +131,24 @@ void breakout_init(game_struct * g, char * level)
 
 	// Display background
 	sprite * s = sprite_init(0,0, 800, 480, (alt_u32*) display->frame_buffer[0], 0, 0);
-	display_add_sprite(display, s, 0);
+	display_add_sprite(display, s);
 	free(s);
 
 	// Display walls
 	for(i=0; i<3; i++)
-		display_add_sprite(display, g->walls[i], 0);
+		display_add_sprite(display, g->walls[i]);
 
 	// Display bricks
 	for(i=0; i< NBR_BRICKS; i++)
-			if(g->bricks[i].enabled) display_add_sprite(display, g->bricks[i].s, 0);
+			if(g->bricks[i].enabled) display_add_sprite(display, g->bricks[i].s);
 
 	// Display ball
-	display_add_sprite(display, g->ball.s, 0);
+	display_add_sprite(display, g->ball.s);
 
 	// Display paddle
-	display_add_sprite(display, g->paddle, 1);
+	display_add_sprite(display, g->paddle);
+
+	display_end_frame(display);
 
 	g->state = NOT_MOVING;
 }

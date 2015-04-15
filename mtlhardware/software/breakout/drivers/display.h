@@ -54,10 +54,11 @@ void   		  display_uninit(display_info* p);
 void          display_go(display_info* p, alt_u8 bGo);
 void          display_switch_frame(display_info* p);
 void 		  display_frame_done(display_info *p);
-void          display_move_sprite(display_info *p, sprite *s, alt_u8 end_frame, int to_x, int to_y);
-void          display_remove_sprite(display_info *p, sprite *s, alt_u8 end_frame);
-void          display_add_sprite(display_info *p, sprite *s, alt_u8 end_frame);
-void          display_push_desc(display_info* p, alt_sgdma_descriptor * desc, alt_u8 frame, alt_u8 end_frame);
+void          display_move_sprite(display_info *p, sprite *s, int to_x, int to_y);
+void          display_remove_sprite(display_info *p, sprite *s);
+void          display_add_sprite(display_info *p, sprite *s);
+void          display_push_desc(display_info* p, alt_sgdma_descriptor * desc, alt_u8 frame);
 alt_sgdma_descriptor * display_imgcpy_desc(display_info *p, alt_u8 frame, sprite * s, void * img, int t_width, int t_height);
+void display_end_frame(display_info *p);
 
 #endif /* DISPLAY_H_ */

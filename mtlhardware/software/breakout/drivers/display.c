@@ -75,7 +75,7 @@ void display_switch_frame(display_info* p) {
     IOWR(p->bg_frame_base, 3, p->displayed_frame);
 }
 
-void display_push_desc(display_info* p, alt_sgdma_descriptor * desc, alt_u8 frame, alt_u8 end_frame)
+void display_push_desc(display_info* p, alt_sgdma_descriptor * desc, alt_u8 frame)
 {
 	alt_u8 err;
 
@@ -83,21 +83,12 @@ void display_push_desc(display_info* p, alt_sgdma_descriptor * desc, alt_u8 fram
 	err = !queue_push(p->desc_queue[frame], (alt_u32) desc);
 
 	if(err)
-	{
-		//printf("Alert ! Descriptors queue is full !!!\n");
 		free(desc);
-	}
-	else if(end_frame && frame == p->alt_frame)
-	{
-		OSSemPend(p->switch_queue->sem, 0, &err);
-		queue_push(p->switch_queue, (alt_u32) desc);
-		OSSemPost(p->switch_queue->sem);
-	}
 
 	OSSemPost(p->desc_queue[frame]->sem);
 }
 
-void display_add_sprite(display_info *p, sprite *s, alt_u8 end_frame)
+void display_add_sprite(display_info *p, sprite *s)
 {
 	if(1)
 	{
@@ -110,15 +101,13 @@ void display_add_sprite(display_info *p, sprite *s, alt_u8 end_frame)
 		// Making descriptor list for the image to place
 		desc2 = display_imgcpy_desc(p, 1, s, s->img_base, s->width, s->height);
 
-		display_push_desc(p, desc1, 0, end_frame);
-		display_push_desc(p, desc2, 1, end_frame);
-		if(end_frame)
-			p->alt_frame = !(p->alt_frame);
+		display_push_desc(p, desc1, 0);
+		display_push_desc(p, desc2, 1);
 	}
 
 }
 
-void display_remove_sprite(display_info *p, sprite *s, alt_u8 end_frame)
+void display_remove_sprite(display_info *p, sprite *s)
 {
 	if(1)
 	{
@@ -131,22 +120,31 @@ void display_remove_sprite(display_info *p, sprite *s, alt_u8 end_frame)
 		// Making descriptor list for the image to place
 		desc2 = display_imgcpy_desc(p, 1, s, ((alt_u32*)p->frame_buffer[0] + s->x+DISPLAY_MAX_WIDTH*s->y), DISPLAY_MAX_WIDTH, DISPLAY_MAX_HEIGHT);
 
-		display_push_desc(p, desc1, 0, end_frame);
-		display_push_desc(p, desc2, 1, end_frame);
-		if(end_frame)
-				p->alt_frame = !(p->alt_frame);
+		display_push_desc(p, desc1, 0);
+		display_push_desc(p, desc2, 1);
 	}
+
 }
 
-void display_move_sprite(display_info *p, sprite *s, alt_u8 end_frame, int to_x, int to_y)
+void display_move_sprite(display_info *p, sprite *s, int to_x, int to_y)
 {
 	if(1)
 	{
-		display_remove_sprite(p, s, 0);
+		display_remove_sprite(p, s);
 		s->x = to_x;
 		s->y = to_y;
-		display_add_sprite(p,s, end_frame);
+		display_add_sprite(p,s);
 	}
+}
+
+void display_end_frame(display_info *p)
+{
+	alt_u8 err;
+	OSSemPend(p->switch_queue->sem, 0, &err);
+	queue_push(p->switch_queue, queue_last(p->desc_queue[p->alt_frame]));
+	OSSemPost(p->switch_queue->sem);
+
+	p->alt_frame = !(p->alt_frame);
 }
 
 alt_sgdma_descriptor * display_imgcpy_desc(display_info *p, alt_u8 frame, sprite * s, void * img, int t_width, int t_height) {

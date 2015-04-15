@@ -51,9 +51,9 @@ void game_event_pop(game_struct * g)
 			g->lives--;
 			break;
 		case SWITCH_PADDLE_SIZE:
-			display_remove_sprite(g->periph.display_handle, g->paddle, 0);
+			display_remove_sprite(g->periph.display_handle, g->paddle);
 			g->paddle->width = (g->paddle->width == 200) ? 100 : 200;
-			display_add_sprite(g->periph.display_handle, g->paddle, 0);
+			display_add_sprite(g->periph.display_handle, g->paddle);
 			break;
 		case ADD_BRICK:
 			if(g->rbricks == 167)
@@ -71,7 +71,7 @@ void game_event_pop(game_struct * g)
 					g->bricks[rnd].s = sprite_init(45+(rnd%14)*50+(rnd%14), 45+(rnd/14)*20+(rnd/14), 50, 20, g->periph.display_handle->bricks_img[g->bricks[rnd].value-1], 0, 0);
 					g->rbricks++;
 
-					display_add_sprite(g->periph.display_handle, g->bricks[rnd].s, 0);
+					display_add_sprite(g->periph.display_handle, g->bricks[rnd].s);
 					brick_placed = 1;
 				}
 			}
@@ -128,7 +128,7 @@ void game_task(void* pdata)
 			game_event_pop(game);
 
 			// Update paddle and balls position
-			display_move_sprite(display, game->paddle, 0, accel_x, 440);
+			display_move_sprite(display, game->paddle, accel_x, 440);
 
 			alt_u16 ball_new_x = game->ball.s->x + game->ball.v.x*game->speed;
 			alt_u16 ball_new_y = game->ball.s->y + game->ball.v.y*game->speed;
@@ -158,7 +158,8 @@ void game_task(void* pdata)
 			{
 				// Out of game
 				game->state = NOT_MOVING;
-				display_move_sprite(display, game->ball.s, 1, game->paddle->x+game->paddle->width/2, game->paddle->y-20);
+				display_move_sprite(display, game->ball.s, game->paddle->x+game->paddle->width/2, game->paddle->y-20);
+				display_end_frame(display);
 
 				if(--(game->lives) <= 0)
 				{
@@ -188,7 +189,7 @@ void game_task(void* pdata)
 							game->score += SCORE_UNIT;
 							collision = 1;
 
-							display_remove_sprite(display, game->bricks[j].s, 0);
+							display_remove_sprite(display, game->bricks[j].s);
 
 							if(game->bricks[j].value == 1)
 							{
@@ -202,7 +203,7 @@ void game_task(void* pdata)
 								// Replace brick
 								game->bricks[j].s->img_base = display->bricks_img[game->bricks[j].value-2];
 								game->bricks[j].value--;
-								display_add_sprite(display, game->bricks[j].s, 0);
+								display_add_sprite(display, game->bricks[j].s);
 							}
 
 							// Compute new vector
@@ -226,7 +227,8 @@ void game_task(void* pdata)
 				ball_new_x = game->ball.s->x + game->ball.v.x*game->speed;
 				ball_new_y = game->ball.s->y + game->ball.v.y*game->speed;
 
-				display_move_sprite(display, game->ball.s, 1, ball_new_x, ball_new_y);
+				display_move_sprite(display, game->ball.s, ball_new_x, ball_new_y);
+				display_end_frame(display);
 			}
 
 			break;
@@ -241,8 +243,10 @@ void game_task(void* pdata)
 
 			// Update paddle and balls position
 			delta = accel_x - game->paddle->x;
-			display_move_sprite(display, game->ball.s, 0, (game->ball.s->x) + delta, game->ball.s->y);
-			display_move_sprite(display, game->paddle, 1, accel_x, 440);
+			display_move_sprite(display, game->ball.s, (game->ball.s->x) + delta, game->ball.s->y);
+			display_move_sprite(display, game->paddle, accel_x, 440);
+
+			display_end_frame(display);
 
 			usleep(30000);
 			break;
