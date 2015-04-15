@@ -11,21 +11,26 @@
 #include "display.h"
 #include "queue.h"
 
-display_info* display_init(alt_u32 mixer_base, alt_u32 bg_frame_base, const char * sgdma_name, alt_avalon_sgdma_callback sgdma_callback, void *sgdma_context) {
+display_info* display_init(alt_u32 mixer_base, alt_u32 bg_frame_base, alt_u32 sprite0_base, alt_u32 sprite1_base, const char * sgdma_name, alt_avalon_sgdma_callback sgdma_callback, void *sgdma_context) {
 	// Initialize frame reader info
     display_info *p = malloc(sizeof(display_info));
 
-    // Activate mixer display
-    IOWR(mixer_base, 0, 1);
-
     // Copy information
     p->bg_frame_base = bg_frame_base;
+    p->sprite_base[0] = sprite0_base;
+    p->sprite_base[1] = sprite1_base;
+    p->mixer_base = mixer_base;
     p->displayed_frame = 0;
     p->desc_queue[0] = queue_new(DISPLAY_DESCS_QUEUE_SIZE);
     p->desc_queue[1] = queue_new(DISPLAY_DESCS_QUEUE_SIZE);
     p->switch_queue = queue_new(DISPLAY_DESCS_QUEUE_SIZE);
     p->desc_current = 0;
     p->alt_frame = 1;
+
+    // Activate mixer display
+	IOWR(p->mixer_base, 0, 1);
+	IOWR(p->mixer_base, MIXER_LAYER0_ACTIVE, 0);
+	IOWR(p->mixer_base, MIXER_LAYER0_ACTIVE+3, 0);
 
     // Init SGDMA
     p->sgdma = alt_avalon_sgdma_open(sgdma_name);
@@ -80,9 +85,8 @@ void display_push_desc(display_info* p, alt_sgdma_descriptor * desc, alt_u8 fram
 	alt_u8 err;
 
 	OSSemPend(p->desc_queue[frame]->sem, 0, &err);
-	err = !queue_push(p->desc_queue[frame], (alt_u32) desc);
 
-	if(err)
+	if(!queue_push(p->desc_queue[frame], (alt_u32) desc))
 		free(desc);
 
 	OSSemPost(p->desc_queue[frame]->sem);
@@ -90,7 +94,7 @@ void display_push_desc(display_info* p, alt_sgdma_descriptor * desc, alt_u8 fram
 
 void display_add_sprite(display_info *p, sprite *s)
 {
-	if(1)
+	if(!s->type)
 	{
 		alt_sgdma_descriptor * desc1;
 		alt_sgdma_descriptor * desc2;
@@ -104,12 +108,26 @@ void display_add_sprite(display_info *p, sprite *s)
 		display_push_desc(p, desc1, 0);
 		display_push_desc(p, desc2, 1);
 	}
+	else
+	{
+		IOWR(p->sprite_base[s->type-1], 0, 0);
+		IOWR(p->sprite_base[s->type-1], DISPLAY_FRAME0_BASE, (alt_u32) s->img_base);
+		IOWR(p->sprite_base[s->type-1], DISPLAY_FRAME0_WORDS, s->width*s->height);
+		IOWR(p->sprite_base[s->type-1], DISPLAY_FRAME0_COLOR_PATTERN, s->width*s->height);
+		IOWR(p->sprite_base[s->type-1], DISPLAY_FRAME0_WIDTH, s->width);
+		IOWR(p->sprite_base[s->type-1], DISPLAY_FRAME0_HEIGHT, s->height);
+		IOWR(p->sprite_base[s->type-1], DISPLAY_FRAME0_INTERLACE, 1);
+		IOWR(p->sprite_base[s->type-1], 0, 1);
+		IOWR(p->mixer_base, MIXER_LAYER0_X+(s->type-1)*3, s->x);
+		IOWR(p->mixer_base, MIXER_LAYER0_Y+(s->type-1)*3, s->y);
+		IOWR(p->mixer_base, MIXER_LAYER0_ACTIVE+(s->type-1)*3, 1);
+	}
 
 }
 
 void display_remove_sprite(display_info *p, sprite *s)
 {
-	if(1)
+	if(!s->type)
 	{
 		alt_sgdma_descriptor * desc1;
 		alt_sgdma_descriptor * desc2;
@@ -123,17 +141,28 @@ void display_remove_sprite(display_info *p, sprite *s)
 		display_push_desc(p, desc1, 0);
 		display_push_desc(p, desc2, 1);
 	}
-
+	else
+	{
+		IOWR(p->sprite_base[s->type-1], 0, 0);
+		IOWR(p->mixer_base, MIXER_LAYER0_ACTIVE+(s->type-1)*3, 0);
+	}
 }
 
 void display_move_sprite(display_info *p, sprite *s, int to_x, int to_y)
 {
-	if(1)
+	if(!s->type)
 	{
 		display_remove_sprite(p, s);
 		s->x = to_x;
 		s->y = to_y;
 		display_add_sprite(p,s);
+	}
+	else
+	{
+		s->x = to_x;
+		s->y = to_y;
+		IOWR(p->mixer_base, MIXER_LAYER0_X+(s->type-1)*3, s->x);
+		IOWR(p->mixer_base, MIXER_LAYER0_Y+(s->type-1)*3, s->y);
 	}
 }
 
@@ -141,10 +170,16 @@ void display_end_frame(display_info *p)
 {
 	alt_u8 err;
 	OSSemPend(p->switch_queue->sem, 0, &err);
-	queue_push(p->switch_queue, queue_last(p->desc_queue[p->alt_frame]));
+
+	if(queue_last(p->switch_queue) != queue_last(p->desc_queue[p->alt_frame]))
+	{
+		queue_push(p->switch_queue, queue_last(p->desc_queue[p->alt_frame]));
+		p->alt_frame = !(p->alt_frame);
+	}
+
 	OSSemPost(p->switch_queue->sem);
 
-	p->alt_frame = !(p->alt_frame);
+
 }
 
 alt_sgdma_descriptor * display_imgcpy_desc(display_info *p, alt_u8 frame, sprite * s, void * img, int t_width, int t_height) {

@@ -20,22 +20,22 @@ void breakout_create_textures(display_info * display)
 
 	for(i=-10; i<10; i++)
 		for(j=-10; j<10;j++)
-			display->ball_img[(i+10)*20+(j+10)] =  ((i*i+j*j) <= 90) ? 0x0 : 0xffffff;
+			IOWR(TEXTURES_BASE, IMG_BALL + (i+10)*20+(j+10),  ((i*i+j*j) <= 90) ? 0x0 : 0xffffff);
 
 	for(i=0; i<4000; i++)
-		display->paddle_img[i] =  (i*i/10)%2==0 ? 0x505050 : 0x000000;
+		IOWR(TEXTURES_BASE, IMG_PADDLE+ i, i%3==0 || i%11==0 ? 0x505050 : 0x000000);
 
 	for(i=0; i<1000; i++)
-		display->bricks_img[0][i] =  i%2==0 ? 0x005000 : 0x009000;
+		display->bricks_img[0][i] =  i%3==0 ? 0x005000 : 0x009000;
 
 	for(i=0; i<1000; i++)
-		display->bricks_img[1][i] =  i%2==0 ? 0x000050 : 0x000090;
+		display->bricks_img[1][i] =  i%3==0 ? 0x000050 : 0x000090;
 
 	for(i=0; i<1000; i++)
-		display->bricks_img[2][i] =  i%2==0 ? 0x500000 : 0x900000;
+		display->bricks_img[2][i] =  i%3==0 ? 0x500000 : 0x900000;
 
 	for(i=0; i<1000; i++)
-		display->bricks_img[3][i] =  i%2==0 ? 0x005050 : 0x009090;
+		display->bricks_img[3][i] =  i%3==0 ? 0x005050 : 0x009090;
 
 	for(i=0; i<4400; i++)
 		display->wall0_img[i] = 0x4a4a4a;
@@ -105,10 +105,10 @@ void breakout_init(game_struct * g, char * level)
 	}
 
 	// Initialize paddle
-	g->paddle = sprite_init(300,440, 200, 20, display->paddle_img, 0, 1);
+	g->paddle = sprite_init(300,440, 200, 20, (alt_u32*) TEXTURES_BASE + IMG_PADDLE, 0, 1);
 
 	// Initialize ball
-	g->ball.s = sprite_init(g->paddle->x+100,g->paddle->y-20, 20,20, display->ball_img, 0x2a2a2a, 1);
+	g->ball.s = sprite_init(g->paddle->x+100,g->paddle->y-20, 20,20, (alt_u32*) TEXTURES_BASE + IMG_BALL, 0x2a2a2a, 2);
 	g->ball.v.x = 1;
 	g->ball.v.y = -1;
 

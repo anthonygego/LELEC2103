@@ -26,6 +26,10 @@
 #define DISPLAY_FRAME1_HEIGHT         16
 #define DISPLAY_FRAME1_INTERLACE      17
 
+#define MIXER_LAYER0_X				  2
+#define MIXER_LAYER0_Y				  3
+#define MIXER_LAYER0_ACTIVE			  4
+
 #define DISPLAY_MAX_HEIGHT			  480
 #define DISPLAY_MAX_WIDTH			  800
 
@@ -34,22 +38,27 @@
 typedef struct
 {
     alt_u32 	    bg_frame_base;
+    alt_u32			mixer_base;
+    alt_u32			sprite_base[2];
     alt_u32 	    frame_buffer [4][DISPLAY_MAX_HEIGHT][DISPLAY_MAX_WIDTH];
     alt_u32			bricks_img   [4][1000];
-    alt_u32			ball_img     [400];
-    alt_u32         paddle_img	 [4000];
     alt_u32			wall0_img [4400];
     alt_u32			wall1_img [4400];
     alt_u32			wall2_img [8000];
+
+    // Descriptor being copied
     alt_u32 	    desc_current;
+
+    // Switch frame logic
     alt_u8  	    displayed_frame;
     alt_u8 		    alt_frame;
     queue 		  * desc_queue[2];
     queue 		  * switch_queue;
+
     alt_sgdma_dev * sgdma;
 } display_info;
 
-display_info* display_init(alt_u32 mixer_base, alt_u32 bg_frame_base, const char * sgdma_name, alt_avalon_sgdma_callback sgdma_callback, void *sgdma_context);
+display_info* display_init(alt_u32 mixer_base, alt_u32 bg_frame_base, alt_u32 sprite0_base, alt_u32 sprite1_base, const char * sgdma_name, alt_avalon_sgdma_callback sgdma_callback, void *sgdma_context);
 void   		  display_uninit(display_info* p);
 void          display_go(display_info* p, alt_u8 bGo);
 void          display_switch_frame(display_info* p);

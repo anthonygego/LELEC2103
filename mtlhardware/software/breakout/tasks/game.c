@@ -165,11 +165,13 @@ void game_task(void* pdata)
 				{
 					game->state = LOST;
 					printf("Game over (score :%d) !\n", (int) game->score);
+					display_remove_sprite(display, game->ball.s);
+					display_remove_sprite(display, game->paddle);
 					breakout_clear_screen(display);
 				}
 				else
 					printf("Lost ball ! Remaining lives : %d\n", game->lives);
-				break;
+
 			}
 			else
 			{
@@ -206,15 +208,17 @@ void game_task(void* pdata)
 								display_add_sprite(display, game->bricks[j].s);
 							}
 
+
 							// Compute new vector
 							if(collision_from == 1) // horizontal
 								game->ball.v.x *= -1;
 							else // vertical
 								game->ball.v.y *= -1;
+
+
 						}
 					}
 				}
-
 
 				if(game->rbricks == 0)
 				{
@@ -228,6 +232,7 @@ void game_task(void* pdata)
 				ball_new_y = game->ball.s->y + game->ball.v.y*game->speed;
 
 				display_move_sprite(display, game->ball.s, ball_new_x, ball_new_y);
+
 				display_end_frame(display);
 			}
 
@@ -246,9 +251,6 @@ void game_task(void* pdata)
 			display_move_sprite(display, game->ball.s, (game->ball.s->x) + delta, game->ball.s->y);
 			display_move_sprite(display, game->paddle, accel_x, 440);
 
-			display_end_frame(display);
-
-			usleep(30000);
 			break;
 		case PAUSED:
 			// If a double click is done, launch the ball(s)
