@@ -30,7 +30,7 @@
 #define DISPLAY_MAX_HEIGHT			  480
 #define DISPLAY_MAX_WIDTH			  800
 
-#define DISPLAY_DESCS_QUEUE_SIZE      256
+#define DISPLAY_DESCS_QUEUE_SIZE      2048
 
 typedef struct
 {
@@ -46,15 +46,9 @@ typedef struct
     alt_u32			wall_vert_img [4400];
     alt_u32			wall_horiz_img[8000];
 
-    // Descriptor being copied
-    alt_u32 	    desc_current;
-
     // Switch frame logic
     alt_u8  	    displayed_frame;
-    alt_u8 		    alt_frame;
     queue 		  * desc_queue[2];
-    queue 		  * switch_queue;
-
     alt_sgdma_dev * sgdma;
 } display_info;
 
@@ -68,7 +62,7 @@ typedef struct {
 	alt_u8    type;
 } sprite;
 
-display_info* display_init(alt_u32 mixer_base, alt_u32 bg_frame_base, alt_u32 sprite0_base, alt_u32 sprite1_base, alt_u32 sprite0_alpha, alt_u32 sprite1_alpha, const char * sgdma_name, alt_avalon_sgdma_callback sgdma_callback, void *sgdma_context);
+display_info* display_init(alt_u32 mixer_base, alt_u32 bg_frame_base, alt_u32 sprite0_base, alt_u32 sprite1_base, alt_u32 sprite0_alpha, alt_u32 sprite1_alpha, const char * sgdma_name);
 sprite *      display_sprite_init(display_info * p, alt_u16 x, alt_u16 y, alt_u16 width, alt_u16 height, alt_u32 * base, alt_u8 * alpha, alt_u8 type);
 
 void   		  display_uninit(display_info* p);

@@ -13,7 +13,7 @@
 
 alt_sgdma_descriptor * display_imgcpy_desc(display_info *p, alt_u8 frame, sprite * s, void * img, int t_width, int t_height);
 
-display_info* display_init(alt_u32 mixer_base, alt_u32 bg_frame_base, alt_u32 sprite0_base, alt_u32 sprite1_base, alt_u32 alpha0_base, alt_u32 alpha1_base, const char * sgdma_name, alt_avalon_sgdma_callback sgdma_callback, void *sgdma_context) {
+display_info* display_init(alt_u32 mixer_base, alt_u32 bg_frame_base, alt_u32 sprite0_base, alt_u32 sprite1_base, alt_u32 alpha0_base, alt_u32 alpha1_base, const char * sgdma_name) {
 	// Initialize frame reader info
     display_info *p = malloc(sizeof(display_info));
 
@@ -27,9 +27,6 @@ display_info* display_init(alt_u32 mixer_base, alt_u32 bg_frame_base, alt_u32 sp
     p->displayed_frame = 0;
     p->desc_queue[0] = queue_new(DISPLAY_DESCS_QUEUE_SIZE);
     p->desc_queue[1] = queue_new(DISPLAY_DESCS_QUEUE_SIZE);
-    p->switch_queue = queue_new(DISPLAY_DESCS_QUEUE_SIZE);
-    p->desc_current = 0;
-    p->alt_frame = 1;
 
     // Initialize mixer
 	IOWR(p->mixer_base, 0, 1);
@@ -38,8 +35,6 @@ display_info* display_init(alt_u32 mixer_base, alt_u32 bg_frame_base, alt_u32 sp
 
     // Initialize SGDMA
     p->sgdma = alt_avalon_sgdma_open(sgdma_name);
-	alt_avalon_sgdma_register_callback(p->sgdma, sgdma_callback,
-			(ALTERA_AVALON_SGDMA_CONTROL_IE_GLOBAL_MSK | ALTERA_AVALON_SGDMA_CONTROL_IE_CHAIN_COMPLETED_MSK ), sgdma_context);
 
     display_go(p, 0);
 
@@ -87,7 +82,8 @@ void display_push_desc(display_info* p, alt_sgdma_descriptor * desc, alt_u8 fram
 {
 	alt_u8 err;
 	OSSemPend(p->desc_queue[frame]->sem, 0, &err);
-	if(!queue_push(p->desc_queue[frame], (alt_u32) desc))
+	if(queue_is_empty(p->desc_queue[frame]) || queue_last(p->desc_queue[frame]) != (alt_u32) desc)
+		if(!queue_push(p->desc_queue[frame], (alt_u32) desc))
 		free(desc);
 	OSSemPost(p->desc_queue[frame]->sem);
 }
@@ -142,15 +138,19 @@ void display_move_sprite(display_info *p, sprite *s, int to_x, int to_y) {
 
 void display_end_frame(display_info *p)
 {
-	alt_u8 err;
-	OSSemPend(p->switch_queue->sem, 0, &err);
-
-	if(queue_last(p->switch_queue) != queue_last(p->desc_queue[p->alt_frame])) {
-		queue_push(p->switch_queue, queue_last(p->desc_queue[p->alt_frame]));
-		p->alt_frame = !(p->alt_frame);
+	while(!queue_is_empty(p->desc_queue[!p->displayed_frame])) {
+		alt_sgdma_descriptor * desc = (alt_sgdma_descriptor *) queue_pop(p->desc_queue[!p->displayed_frame]);
+		alt_avalon_sgdma_do_sync_transfer(p->sgdma, desc);
+		free(desc);
 	}
 
-	OSSemPost(p->switch_queue->sem);
+	display_switch_frame(p);
+
+	while(!queue_is_empty(p->desc_queue[!p->displayed_frame])) {
+		alt_sgdma_descriptor * desc = (alt_sgdma_descriptor *) queue_pop(p->desc_queue[!p->displayed_frame]);
+		alt_avalon_sgdma_do_sync_transfer(p->sgdma, desc);
+		free(desc);
+	}
 }
 
 alt_sgdma_descriptor * display_imgcpy_desc(display_info *p, alt_u8 frame, sprite * s, void * img, int t_width, int t_height) {
