@@ -11,7 +11,7 @@
 #include "pic32.h"
 #include "mtc.h"
 #include "display.h"
-#include "rpc.h"
+#include "tasks.h"
 #include "mpack.h"
 #include "breakout.h"
 

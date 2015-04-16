@@ -7,12 +7,7 @@
 
 #include "pic32.h"
 #include "mtc.h"
-
-#include "console.h"
-#include "rpc.h"
-#include "game.h"
-#include "status.h"
-
+#include "tasks.h"
 #include "mpack.h"
 #include "breakout.h"
 
@@ -23,7 +18,6 @@ OS_STK      status_task_stk    [TASK_STACKSIZE];
 OS_STK      rpc_task_stk       [TASK_STACKSIZE];
 OS_STK      console_task_stk   [TASK_STACKSIZE];
 
-
 /* Definition of Task Priorities */
 
 #define GAME_TASK_PRIORITY         1
@@ -31,8 +25,7 @@ OS_STK      console_task_stk   [TASK_STACKSIZE];
 #define RPC_TASK_PRIORITY          3
 #define CONSOLE_TASK_PRIORITY      4
 
-int main(void)
-{
+int main(void) {
 
 	// Initialize main structure
 	game_struct game;
@@ -50,7 +43,7 @@ int main(void)
 	game.periph.adxl345_handle = adxl345_init(ADXL345_BASE);
 
 	breakout_create_textures(game.periph.display_handle);
-	breakout_clear_screen(game.periph.display_handle);
+	display_clear_screen(game.periph.display_handle);
 	game.state = NOGAME;
 
 	// Create Game task

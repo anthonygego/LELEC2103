@@ -77,6 +77,5 @@ typedef struct {
 
 void breakout_init(game_struct * g, char * level_filename);
 void breakout_create_textures(display_info * display);
-void breakout_clear_screen(display_info *display);
 
 #endif /* BREAKOUT_H_ */

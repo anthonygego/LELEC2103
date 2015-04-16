@@ -10,8 +10,8 @@
 
 #include "pic32.h"
 #include "mtc.h"
+#include "tasks.h"
 #include "display.h"
-#include "rpc.h"
 #include "mpack.h"
 #include "breakout.h"
 
@@ -50,9 +50,7 @@ void game_event_pop(game_struct * g)
 			g->lives--;
 			break;
 		case SWITCH_PADDLE_SIZE:
-			display_remove_sprite(g->periph.display_handle, g->paddle);
-			g->paddle->width = (g->paddle->width == 200) ? 100 : 200;
-			display_add_sprite(g->periph.display_handle, g->paddle);
+			display_sprite_size(g->periph.display_handle, g->paddle, (g->paddle->width == 200) ? 100 : 200, g->paddle->height);
 			break;
 		case ADD_BRICK:
 			if(g->rbricks == 167)
@@ -166,7 +164,7 @@ void game_task(void* pdata)
 					printf("Game over (score :%d) !\n", (int) game->score);
 					display_remove_sprite(display, game->ball.s);
 					display_remove_sprite(display, game->paddle);
-					breakout_clear_screen(display);
+					display_clear_screen(display);
 				}
 				else
 					printf("Lost ball ! Remaining lives : %d\n", game->lives);
@@ -223,7 +221,7 @@ void game_task(void* pdata)
 				{
 					game->state = WON;
 					printf("Well done (score :%d) !\n", (int) game->score);
-					breakout_clear_screen(display);
+					display_clear_screen(display);
 					break;
 				}
 

@@ -7,7 +7,7 @@
 
 #include "pic32.h"
 #include "mtc.h"
-#include "rpc.h"
+#include "tasks.h"
 #include "mpack.h"
 #include "breakout.h"
 
@@ -47,12 +47,13 @@ void rpc_task(void* pdata)
 		if(pic32_receive(game->periph.pic32_handle, &msg, &len, 1))
 		{
 			//printf("---Received RPC message of size %d !\n", len);
-			// parse a data buffer into a node tree
+
+			// Initialize tree for reading
 			mpack_tree_t tree;
 			mpack_tree_init(&tree, msg, len);
 			mpack_node_t* root = mpack_tree_root(&tree);
 
-			// extract the example data on the msgpack homepage
+			// Extract message type
 			alt_u8 msgtype = mpack_node_u8(mpack_node_map_cstr(root, "msgtype"));
 
 			switch(msgtype)
@@ -62,17 +63,18 @@ void rpc_task(void* pdata)
 				rpc_game_event(game, mpack_node_u8(mpack_node_map_cstr(root, "value")));
 				break;
 			case 1:
+				// Start game
 				rpc_game_start(game, mpack_node_u8(mpack_node_map_cstr(root, "value")));
 				break;
 			default:
 				break;
 			}
 
-			// clean up and check for errors
+			// Destroy tree and free message structure
 			mpack_tree_destroy(&tree);
-
 			free(msg);
 		}
+
 		OSTimeDlyHMSM(0, 0, 0, 200);
 	}
 }

@@ -12,6 +12,7 @@
 #include "queue.h"
 
 alt_sgdma_descriptor * display_imgcpy_desc(display_info *p, alt_u8 frame, sprite * s, void * img, int t_width, int t_height);
+alt_sgdma_descriptor * display_memcpy_desc(alt_u32 * src, alt_u32 * dest, alt_u32 length);
 
 display_info* display_init(alt_u32 mixer_base, alt_u32 bg_frame_base, alt_u32 sprite0_base, alt_u32 sprite1_base, alt_u32 alpha0_base, alt_u32 alpha1_base, const char * sgdma_name) {
 	// Initialize frame reader info
@@ -36,7 +37,7 @@ display_info* display_init(alt_u32 mixer_base, alt_u32 bg_frame_base, alt_u32 sp
     // Initialize SGDMA
     p->sgdma = alt_avalon_sgdma_open(sgdma_name);
 
-    display_go(p, 0);
+    IOWR(p->bg_frame_base, 0, 0);
 
     // Configure frame 0
 	IOWR(p->bg_frame_base, DISPLAY_FRAME0_BASE, (alt_u32)p->frame_buffer[1]);
@@ -56,21 +57,20 @@ display_info* display_init(alt_u32 mixer_base, alt_u32 bg_frame_base, alt_u32 sp
 
 	IOWR(p->bg_frame_base, 3, p->displayed_frame);
 
-    display_go(p, 1);
+	IOWR(p->bg_frame_base, 0, 1);
 
     return p;
 }
 
 void display_uninit(display_info* p) {
     if (p) {
-    	if(p->sgdma)
+    	if(p->sgdma) {
     		free(p->sgdma);
+    		queue_delete(p->desc_queue[0]);
+    		queue_delete(p->desc_queue[1]);
+    	}
         free(p);
     }
-}
-
-void display_go(display_info* p, alt_u8 bGo) {
-    IOWR(p->bg_frame_base, 0, bGo ? 1 : 0);
 }
 
 void display_switch_frame(display_info* p) {
@@ -82,8 +82,7 @@ void display_push_desc(display_info* p, alt_sgdma_descriptor * desc, alt_u8 fram
 {
 	alt_u8 err;
 	OSSemPend(p->desc_queue[frame]->sem, 0, &err);
-	if(queue_is_empty(p->desc_queue[frame]) || queue_last(p->desc_queue[frame]) != (alt_u32) desc)
-		if(!queue_push(p->desc_queue[frame], (alt_u32) desc))
+	if(!queue_push(p->desc_queue[frame], (alt_u32) desc))
 		free(desc);
 	OSSemPost(p->desc_queue[frame]->sem);
 }
@@ -153,6 +152,36 @@ void display_end_frame(display_info *p)
 	}
 }
 
+void display_clear_screen(display_info *p)
+{
+	alt_sgdma_descriptor * desc1 = display_memcpy_desc((alt_u32*) p->frame_buffer[1], (alt_u32*) p->frame_buffer[3], DISPLAY_MAX_WIDTH*DISPLAY_MAX_HEIGHT*4);
+	alt_sgdma_descriptor * desc2 = display_memcpy_desc((alt_u32*) p->frame_buffer[2], (alt_u32*) p->frame_buffer[3], DISPLAY_MAX_WIDTH*DISPLAY_MAX_HEIGHT*4);
+
+	// Push to the queue
+	display_push_desc(p, desc1, 0);
+	display_push_desc(p, desc2, 1);
+
+	display_end_frame(p);
+}
+
+alt_sgdma_descriptor * display_memcpy_desc(alt_u32 * dest, alt_u32 * src, alt_u32 length) {
+
+	alt_u32 nbr_desc = (length+SGDMA_MAX_BLOCK_SIZE-1)/SGDMA_MAX_BLOCK_SIZE;
+	alt_sgdma_descriptor * desc = (alt_sgdma_descriptor *) malloc(sizeof(alt_sgdma_descriptor)*nbr_desc);
+
+	int i;
+	for(i=0; i<nbr_desc; i++) {
+		// One SGDMA descriptor per line
+		alt_u32 * src_pos = (alt_u32 *) src + i*SGDMA_MAX_BLOCK_SIZE/4;
+		alt_u32 * dest_pos = (alt_u32 *) dest + i*SGDMA_MAX_BLOCK_SIZE/4;
+		alt_u32 c_size = (i==nbr_desc-1) ? length - i*SGDMA_MAX_BLOCK_SIZE : SGDMA_MAX_BLOCK_SIZE;
+
+		alt_avalon_sgdma_construct_mem_to_mem_desc(desc+i, (i==nbr_desc-1)? 0: (desc+i+1), src_pos, dest_pos, c_size, 0, 0);
+	}
+
+	return desc;
+}
+
 alt_sgdma_descriptor * display_imgcpy_desc(display_info *p, alt_u8 frame, sprite * s, void * img, int t_width, int t_height) {
 
 	alt_sgdma_descriptor * desc = (alt_sgdma_descriptor *) malloc(sizeof(alt_sgdma_descriptor)*s->height);
@@ -182,7 +211,7 @@ sprite * display_sprite_init(display_info * p, alt_u16 x, alt_u16 y, alt_u16 wid
 	s->alpha = alpha;
 	s->type = type;
 
-	// If type is not null, it represents hadware srpite to be used
+	// If type is not null, it represents hardware sprite to be used
 	if(type) {
 		// Initialize image frame
 		IOWR(p->sprite_base[s->type-1], 0, 0);
@@ -206,4 +235,31 @@ sprite * display_sprite_init(display_info * p, alt_u16 x, alt_u16 y, alt_u16 wid
 	}
 
 	return s;
+}
+
+void display_sprite_size(display_info * p, sprite * s, alt_u16 width, alt_u16 height) {
+
+	s->height = height;
+	s->width = width;
+
+	// If type is not null, it represents hardware sprite to be used
+	if(s->type) {
+
+		// Image frame
+		IOWR(p->sprite_base[s->type-1], 0, 0);
+		IOWR(p->sprite_base[s->type-1], DISPLAY_FRAME0_WORDS, s->width*s->height);
+		IOWR(p->sprite_base[s->type-1], DISPLAY_FRAME0_COLOR_PATTERN, s->width*s->height);
+		IOWR(p->sprite_base[s->type-1], DISPLAY_FRAME0_WIDTH, s->width);
+		IOWR(p->sprite_base[s->type-1], DISPLAY_FRAME0_HEIGHT, s->height);
+		IOWR(p->sprite_base[s->type-1], 0, 1);
+
+		// Alpha frame
+		IOWR(p->alpha_base[s->type-1], 0, 0);
+		IOWR(p->alpha_base[s->type-1], DISPLAY_FRAME0_WORDS, s->width*s->height/4);
+		IOWR(p->alpha_base[s->type-1], DISPLAY_FRAME0_COLOR_PATTERN, s->width*s->height);
+		IOWR(p->alpha_base[s->type-1], DISPLAY_FRAME0_WIDTH, s->width);
+		IOWR(p->alpha_base[s->type-1], DISPLAY_FRAME0_HEIGHT, s->height);
+		IOWR(p->alpha_base[s->type-1], 0, 1);
+	}
+
 }

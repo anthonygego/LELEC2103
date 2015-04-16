@@ -65,15 +65,6 @@ void breakout_uninit(game_struct * g)
 		free(g->walls[i]);
 }
 
-void breakout_clear_screen(display_info *display)
-{
-	// Display background
-	sprite * s = display_sprite_init(display, 0,0, 800, 480, (alt_u32*) display->frame_buffer[3], 0, 0);
-	display_add_sprite(display, s);
-	display_end_frame(display);
-	free(s);
-}
-
 void breakout_init(game_struct * g, char * level)
 {
 	display_info * display = g->periph.display_handle;
@@ -81,8 +72,6 @@ void breakout_init(game_struct * g, char * level)
 	// Stop the game
 	if(g->state != NOGAME)
 		breakout_uninit(g);
-
-	breakout_clear_screen(display);
 
 	// Initialize bricks
 	g->rbricks = 0;

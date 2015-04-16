@@ -49,20 +49,6 @@ alt_u32 queue_pop(queue *pqueue){
     return data32;
 }
 
-alt_u32 queue_last(queue *pqueue) {
-	if (queue_is_empty(pqueue))
-			return 0;
-
-	return pqueue->data[(pqueue->front-1)%pqueue->num];
-}
-
-alt_u32 queue_peek(queue *pqueue) {
-	if (queue_is_empty(pqueue))
-		return 0;
-
-	return pqueue->data[pqueue->rear];
-}
-
 void queue_empty(queue *pqueue){
     pqueue->front = 0;
     pqueue->rear = 0;
