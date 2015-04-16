@@ -160,6 +160,7 @@ C_SRCS += mpack/mpack-node.c
 C_SRCS += mpack/mpack-platform.c
 C_SRCS += mpack/mpack-reader.c
 C_SRCS += mpack/mpack-writer.c
+C_SRCS += tasks/status.c
 CXX_SRCS :=
 ASM_SRCS :=
 

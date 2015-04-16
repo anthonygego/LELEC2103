@@ -12,24 +12,25 @@
 #include "rpc.h"
 #include "graphics.h"
 #include "game.h"
+#include "status.h"
 
 #include "mpack.h"
 #include "breakout.h"
 
 /* Definition of Task Stacks */
-#define     TASK_STACKSIZE       2048
-OS_STK      graphics_task_stk    [TASK_STACKSIZE];
-OS_STK      game_task_stk        [TASK_STACKSIZE];
-OS_STK      game_status_task_stk [TASK_STACKSIZE];
-OS_STK      rpc_task_stk         [TASK_STACKSIZE];
-OS_STK      console_task_stk     [TASK_STACKSIZE];
+#define     TASK_STACKSIZE     2048
+OS_STK      graphics_task_stk  [TASK_STACKSIZE];
+OS_STK      game_task_stk      [TASK_STACKSIZE];
+OS_STK      status_task_stk    [TASK_STACKSIZE];
+OS_STK      rpc_task_stk       [TASK_STACKSIZE];
+OS_STK      console_task_stk   [TASK_STACKSIZE];
 
 
 /* Definition of Task Priorities */
 
 #define GRAPHICS_TASK_PRIORITY     1
 #define GAME_TASK_PRIORITY         2
-#define GAME_STATUS_TASK_PRIORITY  3
+#define STATUS_TASK_PRIORITY       3
 #define RPC_TASK_PRIORITY          4
 #define CONSOLE_TASK_PRIORITY      5
 
@@ -78,12 +79,12 @@ int main(void)
 				  0);
 
 	// Create Game status task
-	OSTaskCreateExt(game_status_task,
+	OSTaskCreateExt(status_task,
 				  (void *)&game,
-				  (void *)&game_status_task_stk[TASK_STACKSIZE-1],
-				  GAME_STATUS_TASK_PRIORITY,
-				  GAME_STATUS_TASK_PRIORITY,
-				  game_status_task_stk,
+				  (void *)&status_task_stk[TASK_STACKSIZE-1],
+				  STATUS_TASK_PRIORITY,
+				  STATUS_TASK_PRIORITY,
+				  status_task_stk,
 				  TASK_STACKSIZE,
 				  NULL,
 				  0);
