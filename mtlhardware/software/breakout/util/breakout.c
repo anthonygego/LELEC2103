@@ -22,8 +22,15 @@ void breakout_create_textures(display_info * display)
 		for(j=-10; j<10;j++)
 			IOWR(TEXTURES_BASE, IMG_BALL + (i+10)*20+(j+10),  ((i*i+j*j) <= 90) ? 0x0 : 0xffffff);
 
+	for(i=-10; i<10; i++)
+		for(j=-10; j<10;j++)
+			*((alt_u8*)TEXTURES_BASE + ALPHA_BALL*4 + (i+10)*20+(j+10)) = ((i*i+j*j) <= 90) ? 0x0 : 0xff;
+
 	for(i=0; i<4000; i++)
 		IOWR(TEXTURES_BASE, IMG_PADDLE+ i, i%3==0 || i%11==0 ? 0x505050 : 0x000000);
+
+	for(i=0; i<4000; i++)
+		*((alt_u8*) TEXTURES_BASE+ ALPHA_PADDLE*4 + i) =  0x0;
 
 	for(i=0; i<1000; i++)
 		display->bricks_img[0][i] =  i%3==0 ? 0x005000 : 0x009000;
