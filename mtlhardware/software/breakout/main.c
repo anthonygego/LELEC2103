@@ -46,7 +46,7 @@ int main(void)
 	game.periph.mtc_handle = mtc_init(MULTI_TOUCH_BASE, MULTI_TOUCH_IRQ_INTERRUPT_CONTROLLER_ID, MULTI_TOUCH_IRQ);
 
 	// Initialize Display
-	game.periph.display_handle = display_init(VIDEO_MIXER_BASE, FRAME_BACKGROUND_BASE, FRAME_PADDLE_BASE, FRAME_BALL_BASE, SGDMA_NAME, graphics_isr, &game);
+	game.periph.display_handle = display_init(VIDEO_MIXER_BASE, FRAME_BACKGROUND_BASE, FRAME_PADDLE_BASE, FRAME_BALL_BASE, ALPHA_PADDLE_BASE, ALPHA_BALL_BASE, SGDMA_NAME, graphics_isr, &game);
 
 	// Initialize Accelerometer
 	game.periph.adxl345_handle = adxl345_init(ADXL345_BASE);

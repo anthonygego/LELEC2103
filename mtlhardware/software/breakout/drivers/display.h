@@ -4,10 +4,7 @@
 #include <includes.h>
 #include <alt_types.h>
 #include <altera_avalon_sgdma.h>
-#include <altera_avalon_sgdma_regs.h>
-#include <altera_avalon_sgdma_descriptor.h>
 
-#include "sprite.h"
 #include "queue.h"
 
 #define SGDMA_MAX_BLOCK_SIZE          32768
@@ -37,14 +34,17 @@
 
 typedef struct
 {
+	// Address to peripherals
     alt_u32 	    bg_frame_base;
     alt_u32			mixer_base;
-    alt_u32			sprite_base[2];
-    alt_u32 	    frame_buffer [4][DISPLAY_MAX_HEIGHT][DISPLAY_MAX_WIDTH];
-    alt_u32			bricks_img   [4][1000];
-    alt_u32			wall0_img [4400];
-    alt_u32			wall1_img [4400];
-    alt_u32			wall2_img [8000];
+    alt_u32			sprite_base   [2];
+    alt_u32			alpha_base    [2];
+
+    // Image buffers
+    alt_u32 	    frame_buffer  [4][DISPLAY_MAX_HEIGHT][DISPLAY_MAX_WIDTH];
+    alt_u32			bricks_img    [4][1000];
+    alt_u32			wall_vert_img [4400];
+    alt_u32			wall_horiz_img[8000];
 
     // Descriptor being copied
     alt_u32 	    desc_current;
@@ -58,7 +58,19 @@ typedef struct
     alt_sgdma_dev * sgdma;
 } display_info;
 
-display_info* display_init(alt_u32 mixer_base, alt_u32 bg_frame_base, alt_u32 sprite0_base, alt_u32 sprite1_base, const char * sgdma_name, alt_avalon_sgdma_callback sgdma_callback, void *sgdma_context);
+typedef struct {
+	alt_u16   x;
+	alt_u16   y;
+	alt_u16   width;
+	alt_u16   height;
+	alt_u32 * img_base;
+	alt_u8  * alpha;
+	alt_u8    type;
+} sprite;
+
+display_info* display_init(alt_u32 mixer_base, alt_u32 bg_frame_base, alt_u32 sprite0_base, alt_u32 sprite1_base, alt_u32 sprite0_alpha, alt_u32 sprite1_alpha, const char * sgdma_name, alt_avalon_sgdma_callback sgdma_callback, void *sgdma_context);
+sprite *      display_sprite_init(display_info * p, alt_u16 x, alt_u16 y, alt_u16 width, alt_u16 height, alt_u32 * base, alt_u8 * alpha, alt_u8 type);
+
 void   		  display_uninit(display_info* p);
 void          display_go(display_info* p, alt_u8 bGo);
 void          display_switch_frame(display_info* p);
@@ -66,8 +78,7 @@ void 		  display_frame_done(display_info *p);
 void          display_move_sprite(display_info *p, sprite *s, int to_x, int to_y);
 void          display_remove_sprite(display_info *p, sprite *s);
 void          display_add_sprite(display_info *p, sprite *s);
+void          display_end_frame(display_info *p);
 void          display_push_desc(display_info* p, alt_sgdma_descriptor * desc, alt_u8 frame);
-alt_sgdma_descriptor * display_imgcpy_desc(display_info *p, alt_u8 frame, sprite * s, void * img, int t_width, int t_height);
-void display_end_frame(display_info *p);
 
 #endif /* DISPLAY_H_ */

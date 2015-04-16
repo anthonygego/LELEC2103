@@ -148,7 +148,6 @@ C_SRCS += tasks/rpc.c
 C_SRCS += drivers/mtc.c
 C_SRCS += util/queue.c
 C_SRCS += main.c
-C_SRCS += util/sprite.c
 C_SRCS += drivers/adxl345.c
 C_SRCS += tasks/game.c
 C_SRCS += tasks/graphics.c

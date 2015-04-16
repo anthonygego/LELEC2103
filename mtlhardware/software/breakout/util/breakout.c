@@ -1,3 +1,4 @@
+#include <io.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <includes.h>
@@ -45,13 +46,10 @@ void breakout_create_textures(display_info * display)
 		display->bricks_img[3][i] =  i%3==0 ? 0x005050 : 0x009090;
 
 	for(i=0; i<4400; i++)
-		display->wall0_img[i] = 0x4a4a4a;
-
-	for(i=0; i<4400; i++)
-		display->wall1_img[i] = 0x4a4a4a;
+		display->wall_vert_img[i] = 0x4a4a4a;
 
 	for(i=0; i<8000; i++)
-		display->wall2_img[i] = 0x4a4a4a;
+		display->wall_horiz_img[i] = 0x4a4a4a;
 
 	alt_dcache_flush_all();
 }
@@ -70,7 +68,7 @@ void breakout_uninit(game_struct * g)
 void breakout_clear_screen(display_info *display)
 {
 	// Display background
-	sprite * s = sprite_init(0,0, 800, 480, (alt_u32*) display->frame_buffer[3], 0, 0);
+	sprite * s = display_sprite_init(display, 0,0, 800, 480, (alt_u32*) display->frame_buffer[3], 0, 0);
 	display_add_sprite(display, s);
 	display_end_frame(display);
 	free(s);
@@ -99,7 +97,7 @@ void breakout_init(game_struct * g, char * level)
 
 			if(g->bricks[i*14+j].value > 0 && g->bricks[i*14+j].value < 5)
 			{
-				g->bricks[i*14+j].s = sprite_init(45+j*50+j, 45+i*20+i, 50, 20, display->bricks_img[g->bricks[i*14+j].value-1], 0, 0);
+				g->bricks[i*14+j].s = display_sprite_init(display, 45+j*50+j, 45+i*20+i, 50, 20, display->bricks_img[g->bricks[i*14+j].value-1], 0, 0);
 				g->rbricks++;
 				j++;
 			}
@@ -112,17 +110,17 @@ void breakout_init(game_struct * g, char * level)
 	}
 
 	// Initialize paddle
-	g->paddle = sprite_init(300,440, 200, 20, (alt_u32*) TEXTURES_BASE + IMG_PADDLE, 0, 1);
+	g->paddle = display_sprite_init(display, 300,440, 200, 20, (alt_u32*) TEXTURES_BASE + IMG_PADDLE, (alt_u8*) TEXTURES_BASE + ALPHA_PADDLE*4, 1);
 
 	// Initialize ball
-	g->ball.s = sprite_init(g->paddle->x+100,g->paddle->y-20, 20,20, (alt_u32*) TEXTURES_BASE + IMG_BALL, 0x2a2a2a, 2);
+	g->ball.s = display_sprite_init(display, g->paddle->x+100,g->paddle->y-20, 20,20, (alt_u32*) TEXTURES_BASE + IMG_BALL, (alt_u8*) TEXTURES_BASE + ALPHA_BALL*4, 2);
 	g->ball.v.x = 1;
 	g->ball.v.y = -1;
 
 	// Initialize walls
-	g->walls[0] = sprite_init(0,0, 10, 440, display->wall0_img, 0, 0);
-	g->walls[1] = sprite_init(0,0, 800, 10, display->wall2_img, 0, 0);
-	g->walls[2] = sprite_init(790,0, 10, 440, display->wall1_img, 0, 0);
+	g->walls[0] = display_sprite_init(display, 0,0, 10, 440, display->wall_vert_img, 0, 0);
+	g->walls[1] = display_sprite_init(display, 0,0, 800, 10, display->wall_horiz_img, 0, 0);
+	g->walls[2] = display_sprite_init(display, 790,0, 10, 440, display->wall_vert_img, 0, 0);
 
 	// Initialize speed
 	g->speed = 5;
@@ -137,7 +135,7 @@ void breakout_init(game_struct * g, char * level)
 	g->events_queue = queue_new(EVENT_QUEUE_SIZE);
 
 	// Display background
-	sprite * s = sprite_init(0,0, 800, 480, (alt_u32*) display->frame_buffer[0], 0, 0);
+	sprite * s = display_sprite_init(display, 0,0, 800, 480, (alt_u32*) display->frame_buffer[0], 0, 0);
 	display_add_sprite(display, s);
 	free(s);
 
