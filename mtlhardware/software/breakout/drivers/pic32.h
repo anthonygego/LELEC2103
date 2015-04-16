@@ -1,6 +1,7 @@
 #ifndef PIC32_H_
 #define PIC32_H_
 
+#include <includes.h>
 #include <alt_types.h>
 
 #define CYCLONE_RPC_MIWI		0
@@ -36,6 +37,7 @@ typedef struct {
     alt_u32      INT2_IRQ_NUM;
     alt_u32      INT2_IRQ_CONTROLLER;
     txrx_state * state;
+    OS_EVENT   * sem;
 } pic32_info;
 
 pic32_info*   pic32_init   (alt_u32 PIC_BASE, alt_u32 INT1_BASE, alt_u32 INT2_BASE, alt_u32 INT2_IRQ_CONTROLLER, alt_u32 INT2_IRQ_NUM);

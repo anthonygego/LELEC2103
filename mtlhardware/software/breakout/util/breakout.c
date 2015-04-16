@@ -57,7 +57,13 @@ void breakout_create_textures(display_info * display)
 void breakout_uninit(game_struct * g)
 {
 	g->state = NOGAME;
+
+	display_remove_sprite(g->periph.display_handle, g->ball.s);
+	display_remove_sprite(g->periph.display_handle, g->paddle);
+
+	// Free allocated resources
 	queue_delete(g->events_queue);
+	free(g->ball.s);
 	free(g->paddle);
 
 	int i;
@@ -142,6 +148,7 @@ void breakout_init(game_struct * g, char * level)
 	// Display paddle
 	display_add_sprite(display, g->paddle);
 
+	// Display on screen
 	display_end_frame(display);
 
 	g->state = NOT_MOVING;

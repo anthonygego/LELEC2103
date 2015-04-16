@@ -27,8 +27,11 @@ void rpc_game_start(game_struct * game, alt_u8 level)
 
 	sprintf(level_file, "level%02d.txt", (int) level);
 
+	alt_u8 err;
+	OSSemPend(game->periph.pic32_handle->sem, 0, &err);
 	pic32_sendrpc(game->periph.pic32_handle, level_file, 12, CYCLONE_RPC_FILE);
 	while(!pic32_receive(game->periph.pic32_handle, &level_text, &len, 0));
+	OSSemPost(game->periph.pic32_handle->sem);
 
 	breakout_init(game, level_text);
 
@@ -44,7 +47,12 @@ void rpc_task(void* pdata)
 		char * msg;
 		size_t len;
 
-		if(pic32_receive(game->periph.pic32_handle, &msg, &len, 1))
+		alt_u8 err;
+		OSSemPend(game->periph.pic32_handle->sem, 0, &err);
+		alt_u8 has_msg = pic32_receive(game->periph.pic32_handle, &msg, &len, 1);
+		OSSemPost(game->periph.pic32_handle->sem);
+
+		if(has_msg)
 		{
 			//printf("---Received RPC message of size %d !\n", len);
 

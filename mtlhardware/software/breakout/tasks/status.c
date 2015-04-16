@@ -57,7 +57,10 @@ void status_task(void* pdata)
 		size_t count = mpack_writer_buffer_used(&writer);
 		mpack_writer_destroy(&writer);
 
+		alt_u8 err;
+		OSSemPend(game->periph.pic32_handle->sem, 0, &err);
 		pic32_sendrpc(game->periph.pic32_handle, buffer, count, CYCLONE_RPC_INFO);
+		OSSemPost(game->periph.pic32_handle->sem);
 
 		OSTimeDlyHMSM(0, 0, 1, 0);
 	}

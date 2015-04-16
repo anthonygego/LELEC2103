@@ -71,6 +71,7 @@ pic32_info* pic32_init(alt_u32 PIC_BASE, alt_u32 INT1_BASE, alt_u32 INT2_BASE, a
 	p->INT2_IRQ_CONTROLLER = INT2_IRQ_CONTROLLER;
 	p->INT2_IRQ_NUM = INT2_IRQ_NUM;
 	p->state = (txrx_state *) malloc(sizeof(txrx_state));
+	p->sem = OSSemCreate(1);
 
 	// Enable  interrupt.
 	IOWR_ALTERA_AVALON_PIO_IRQ_MASK(p->INT2_BASE, 0x1);
@@ -95,6 +96,8 @@ void pic32_uninit(pic32_info* p)
 {
 	if(p)
 	{
+		alt_u8 err;
+		OSSemDel(p->sem, OS_DEL_ALWAYS, &err);
 		free(p->state);
 		free(p);
 	}

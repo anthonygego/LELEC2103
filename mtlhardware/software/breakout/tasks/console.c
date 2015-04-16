@@ -45,8 +45,11 @@ void console_task(void* pdata)
 			char * level_text;
 			size_t len;
 
+			alt_u8 err;
+			OSSemPend(game->periph.pic32_handle->sem, 0, &err);
 			pic32_sendrpc(game->periph.pic32_handle, level_file, 12, CYCLONE_RPC_FILE);
 			while(!pic32_receive(game->periph.pic32_handle, &level_text, &len, 0));
+			OSSemPost(game->periph.pic32_handle->sem);
 
 			breakout_init(game, level_text);
 

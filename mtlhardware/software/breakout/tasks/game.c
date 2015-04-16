@@ -164,7 +164,6 @@ void game_task(void* pdata)
 					printf("Game over (score :%d) !\n", (int) game->score);
 					display_remove_sprite(display, game->ball.s);
 					display_remove_sprite(display, game->paddle);
-					display_clear_screen(display);
 				}
 				else
 					printf("Lost ball ! Remaining lives : %d\n", game->lives);
@@ -221,7 +220,6 @@ void game_task(void* pdata)
 				{
 					game->state = WON;
 					printf("Well done (score :%d) !\n", (int) game->score);
-					display_clear_screen(display);
 					break;
 				}
 
