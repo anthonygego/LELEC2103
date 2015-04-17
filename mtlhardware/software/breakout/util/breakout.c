@@ -6,26 +6,43 @@
 
 #include "queue.h"
 #include "breakout.h"
+#include "simpletext.h"
 
-void breakout_create_textures(display_info * display)
+void breakout_create_textures(game_struct * game)
 {
+	display_info * display = game->periph.display_handle;
+
 	int i,j;
+
+	for(i=0; i<480; i++)
+		for(j=0; j<800; j++)
+			display->frame_buffer[3][i][j] = 0x0;
+
+	display_clear_screen(display);
 
 	for(i=0; i<480; i++)
 			for(j=0; j<800; j++)
 				display->frame_buffer[0][i][j] = 0xff0000 + ((i*255/480) << 8);
 
-	for(i=0; i<480; i++)
-			for(j=0; j<800; j++)
-				display->frame_buffer[3][i][j] = 0x0;
+	// Loading textures from SD card
 
-	for(i=-10; i<10; i++)
-		for(j=-10; j<10;j++)
-			IOWR(TEXTURES_BASE, IMG_BALL + (i+10)*20+(j+10),  ((i*i+j*j) <= 90) ? 0x0 : 0xffffff);
+	alt_u32 * textures;
+	size_t len;
 
-	for(i=-10; i<10; i++)
-		for(j=-10; j<10;j++)
-			*((alt_u8*)TEXTURES_BASE + ALPHA_BALL*4 + (i+10)*20+(j+10)) = ((i*i+j*j) <= 90) ? 0x0 : 0xff;
+	alt_u8 err;
+	OSSemPend(game->periph.pic32_handle->sem, 0, &err);
+	pic32_sendrpc(game->periph.pic32_handle, "textures.bin", 13, CYCLONE_RPC_FILE);
+	while(!pic32_receive(game->periph.pic32_handle, (char **) &textures, &len, 0));
+	OSSemPost(game->periph.pic32_handle->sem);
+
+
+
+	for(i=0; i<500; i++)
+		IOWR(TEXTURES_BASE, IMG_BALL + i, textures[i]);
+
+	free(textures);
+
+	// Creating rest of textures
 
 	for(i=0; i<4000; i++)
 		IOWR(TEXTURES_BASE, IMG_PADDLE+ i, i%3==0 || i%11==0 ? 0x505050 : 0x000000);
@@ -46,10 +63,10 @@ void breakout_create_textures(display_info * display)
 		display->bricks_img[3][i] =  i%3==0 ? 0x005050 : 0x009090;
 
 	for(i=0; i<4400; i++)
-		display->wall_vert_img[i] = 0x4a4a4a;
+		display->wall_vert_img[i] =  i%3==0 ? 0x0 : 0x4a4a4a;
 
 	for(i=0; i<8000; i++)
-		display->wall_horiz_img[i] = 0x4a4a4a;
+		display->wall_horiz_img[i] = i%3==0 ? 0x2a2a2a : 0x4a4a4a;
 
 	alt_dcache_flush_all();
 }
@@ -148,8 +165,34 @@ void breakout_init(game_struct * g, char * level)
 	// Display paddle
 	display_add_sprite(display, g->paddle);
 
+	// Score text
+	display_add_text(display, 15, 15, 0xffffff, tahomabold_20, 0, "Score :");
+
 	// Display on screen
 	display_end_frame(display);
 
 	g->state = NOT_MOVING;
+}
+
+alt_u8 breakout_collision(sprite *s1, sprite *s2)
+{
+	alt_u16 x1 = s1->x;
+	alt_u16 y1 = s1->y;
+	alt_u16 w1 = s1->width;
+	alt_u16 h1 = s1->height;
+	alt_u16 x2 = s2->x;
+	alt_u16 y2 = s2->y;
+	alt_u16 w2 = s2->width;
+	alt_u16 h2 = s2->height;
+
+	alt_u8 result = 0;
+	if(!((x1 + w1 < x2) || (x2 + w2 < x1) || (y1 + h1 < y2) || (y2 + h2 < y1)))
+	{
+		if((x1 < x2 && x2 < x1 + w1) || (x1 < x2+w2 && x2+w2 < x1+w1))
+			result = 1;
+		else if((y1 < y2 && y2 < y1 + h1) || (y1 < y2+h2 && y2+h2 < y1+h1))
+			result = 2;
+	}
+
+	return result;
 }

@@ -75,7 +75,8 @@ typedef struct {
 } game_struct;
 
 
-void breakout_init(game_struct * g, char * level_filename);
-void breakout_create_textures(display_info * display);
+void   breakout_init(game_struct * g, char * level_filename);
+void   breakout_create_textures(game_struct * game);
+alt_u8 breakout_collision(sprite *s1, sprite *s2);
 
 #endif /* BREAKOUT_H_ */

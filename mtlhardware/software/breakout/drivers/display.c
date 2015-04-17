@@ -10,6 +10,7 @@
 
 #include "display.h"
 #include "queue.h"
+#include "simpletext.h"
 
 alt_sgdma_descriptor * display_imgcpy_desc(display_info *p, alt_u8 frame, sprite * s, void * img, int t_width, int t_height);
 alt_sgdma_descriptor * display_memcpy_desc(alt_u32 * src, alt_u32 * dest, alt_u32 length);
@@ -28,6 +29,8 @@ display_info* display_init(alt_u32 mixer_base, alt_u32 bg_frame_base, alt_u32 sp
     p->displayed_frame = 0;
     p->desc_queue[0] = queue_new(DISPLAY_DESCS_QUEUE_SIZE);
     p->desc_queue[1] = queue_new(DISPLAY_DESCS_QUEUE_SIZE);
+    p->text_queue[0] = queue_new(DISPLAY_DESCS_QUEUE_SIZE);
+    p->text_queue[1] = queue_new(DISPLAY_DESCS_QUEUE_SIZE);
 
     // Initialize mixer
 	IOWR(p->mixer_base, 0, 1);
@@ -87,6 +90,33 @@ void display_push_desc(display_info* p, alt_sgdma_descriptor * desc, alt_u8 fram
 	OSSemPost(p->desc_queue[frame]->sem);
 }
 
+void display_push_dt(display_info* p, display_text * dt, alt_u8 frame)
+{
+	alt_u8 err;
+	OSSemPend(p->text_queue[frame]->sem, 0, &err);
+	if(!queue_push(p->text_queue[frame], (alt_u32) dt))
+		free(dt);
+	OSSemPost(p->text_queue[frame]->sem);
+}
+
+void display_add_text(display_info *p, alt_u16 x, alt_u16 y, alt_u32 color, font_struct * font, alt_u8 as_sprite, char* text)
+{
+	alt_u8 i;
+	for(i=0; i<2; i++) {
+		display_text * dt = malloc(sizeof(display_text));
+		dt->x = x;
+		dt->y = y;
+		dt->text = text;
+		dt->color = color;
+		dt->font = font;
+		dt->as_sprite = as_sprite;
+
+		// Push to the queue
+		display_push_dt(p, dt, i);
+	}
+
+}
+
 void display_add_sprite(display_info *p, sprite *s)
 {
 	if(!s->type) {
@@ -137,18 +167,28 @@ void display_move_sprite(display_info *p, sprite *s, int to_x, int to_y) {
 
 void display_end_frame(display_info *p)
 {
-	while(!queue_is_empty(p->desc_queue[!p->displayed_frame])) {
-		alt_sgdma_descriptor * desc = (alt_sgdma_descriptor *) queue_pop(p->desc_queue[!p->displayed_frame]);
-		alt_avalon_sgdma_do_sync_transfer(p->sgdma, desc);
-		free(desc);
-	}
+	alt_u8 err, i;
 
-	display_switch_frame(p);
+	for(i=0; i<2; i++)
+	{
+		OSSemPend(p->desc_queue[!p->displayed_frame]->sem, 0, &err);
+		while(!queue_is_empty(p->desc_queue[!p->displayed_frame])) {
+			alt_sgdma_descriptor * desc = (alt_sgdma_descriptor *) queue_pop(p->desc_queue[!p->displayed_frame]);
+			alt_avalon_sgdma_do_sync_transfer(p->sgdma, desc);
+			free(desc);
+		}
+		OSSemPost(p->desc_queue[!p->displayed_frame]->sem);
 
-	while(!queue_is_empty(p->desc_queue[!p->displayed_frame])) {
-		alt_sgdma_descriptor * desc = (alt_sgdma_descriptor *) queue_pop(p->desc_queue[!p->displayed_frame]);
-		alt_avalon_sgdma_do_sync_transfer(p->sgdma, desc);
-		free(desc);
+		OSSemPend(p->text_queue[!p->displayed_frame]->sem, 0, &err);
+		while(!queue_is_empty(p->text_queue[!p->displayed_frame])) {
+			display_text * dt = (display_text *) queue_pop(p->text_queue[!p->displayed_frame]);
+			simpletext_print(p, dt->x, dt->y, dt->color, dt->font, dt->text, dt->as_sprite);
+			free(dt);
+		}
+		OSSemPost(p->text_queue[!p->displayed_frame]->sem);
+
+		if(i==0)
+			display_switch_frame(p);
 	}
 }
 

@@ -49,8 +49,29 @@ typedef struct
     // Switch frame logic
     alt_u8  	    displayed_frame;
     queue 		  * desc_queue[2];
+    queue		  * text_queue[2];
     alt_sgdma_dev * sgdma;
 } display_info;
+
+typedef struct abc_font_struct {
+  unsigned long extents_width;
+  unsigned long extents_height;
+  unsigned long extents_ascent;
+  unsigned long extents_descent;
+  unsigned long bounds_width;
+  unsigned long bounds_height;
+  unsigned char *char_alpha_map;
+  unsigned long reserved;
+} font_struct;
+
+typedef struct {
+	alt_u16       x;
+	alt_u16       y;
+	char *        text;
+	alt_u32	      color;
+	font_struct * font;
+	alt_u8        as_sprite;
+} display_text;
 
 typedef struct {
 	alt_u16   x;
@@ -74,7 +95,9 @@ void display_remove_sprite(display_info *p, sprite *s);
 void display_add_sprite(display_info *p, sprite *s);
 void display_end_frame(display_info *p);
 void display_push_desc(display_info* p, alt_sgdma_descriptor * desc, alt_u8 frame);
+void display_push_dt(display_info* p, display_text * dt, alt_u8 frame);
 void display_sprite_size(display_info * p, sprite * s, alt_u16 width, alt_u16 height);
 void display_clear_screen(display_info *p);
+void display_add_text(display_info *p, alt_u16 x, alt_u16 y, alt_u32 color, font_struct * font, alt_u8 as_sprite, char* text);
 
 #endif /* DISPLAY_H_ */

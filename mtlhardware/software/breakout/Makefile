@@ -160,6 +160,9 @@ C_SRCS += mpack/mpack-platform.c
 C_SRCS += mpack/mpack-reader.c
 C_SRCS += mpack/mpack-writer.c
 C_SRCS += tasks/status.c
+C_SRCS += util/simpletext.c
+C_SRCS += util/tahomabold_20.c
+C_SRCS += util/tahomabold_32.c
 CXX_SRCS :=
 ASM_SRCS :=
 

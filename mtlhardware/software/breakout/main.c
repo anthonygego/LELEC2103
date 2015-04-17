@@ -42,8 +42,7 @@ int main(void) {
 	// Initialize Accelerometer
 	game.periph.adxl345_handle = adxl345_init(ADXL345_BASE);
 
-	breakout_create_textures(game.periph.display_handle);
-	display_clear_screen(game.periph.display_handle);
+	breakout_create_textures(&game);
 	game.state = NOGAME;
 
 	// Create Game task

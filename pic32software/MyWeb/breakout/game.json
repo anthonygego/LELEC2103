@@ -1,0 +1,8 @@
+{
+    "state": ~state~,
+    "lives": ~lives~,
+    "rbricks": ~bricks~,
+    "score": ~score~,
+    "size": ~size~,
+    "speed": ~speed~
+}
