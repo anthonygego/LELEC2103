@@ -260,6 +260,6 @@ void game_task(void* pdata)
 		//
 		// Sleep for a while
 		//
-		OSTimeDlyHMSM(0, 0, 0, 40);
+		OSTimeDlyHMSM(0, 0, 0, 25);
 	}
 }
