@@ -1,4 +1,5 @@
 #include <io.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <includes.h>
@@ -17,7 +18,7 @@ void breakout_init_textures(game_struct * game)
 	int i,j;
 
 	// Black background for cleaning screen
-	for(i=0; i<480*480; i++)
+	for(i=0; i<800*480; i++)
 		IOWR(display->frame_buffer[3], i, 0x0);
 
 	// Clear screen and display loading message
@@ -54,6 +55,7 @@ void breakout_init_textures(game_struct * game)
 	// Display loading is finished
 	display_add_text(display, 500, 210, 0xffffff, tahomabold_32, 0, "OK");
 	display_end_frame(display);
+
 }
 
 void breakout_uninit(game_struct * g)
@@ -71,6 +73,24 @@ void breakout_uninit(game_struct * g)
 	int i;
 	for(i=0;i<3;i++)
 		free(g->walls[i]);
+}
+
+void breakout_ball_paddle(ball * ball, sprite * paddle)
+{
+	float ball_center_x = ball->s->x + ball->s->width/2;
+	float paddle_center_x = paddle->x + paddle->width/2;
+	float dist = ball_center_x - paddle_center_x;
+
+	float speedx = ball->v.x;
+	float speedy = ball->v.y;
+	float speed = sqrt(speedx*speedx + speedy*speedy);
+
+	speedx = speed * 0.9 * dist / (paddle->width/2);
+	speedy = sqrt(speed*speed - speedx*speedx) * (speedy > 0? -1 : 1);
+
+	speed = sqrt(speedx*speedx + speedy*speedy);
+	ball->v.x = speedx /speed;
+	ball->v.y = speedy/speed;
 }
 
 void breakout_init(game_struct * g, char * level, alt_8 controller)
@@ -112,8 +132,8 @@ void breakout_init(game_struct * g, char * level, alt_8 controller)
 
 	// Initialize ball
 	g->ball.s = display_sprite_init(display, g->paddle->x+100,g->paddle->y-20, 20,20, (alt_u32*) TEXTURES_BASE + IMG_BALL, (alt_u8*) TEXTURES_BASE + ALPHA_BALL*4, 2);
-	g->ball.v.x = 1;
-	g->ball.v.y = -1;
+	g->ball.v.x = sqrt(2)/2;
+	g->ball.v.y = -sqrt(2)/2;
 
 	// Initialize walls
 	g->walls[0] = display_sprite_init(display, 0,0, 10, 440, display->wall_vert_img, 0, 0);

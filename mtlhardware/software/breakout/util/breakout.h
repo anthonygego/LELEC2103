@@ -40,8 +40,8 @@ typedef enum {
 } game_state;
 
 typedef struct {
-	alt_16 x;
-	alt_16 y;
+	float x;
+	float y;
 } vector;
 
 typedef struct {
@@ -80,6 +80,7 @@ typedef struct {
 
 void   breakout_init(game_struct * g, char * level_filename, alt_8 controller);
 void   breakout_init_textures(game_struct * game);
+void   breakout_ball_paddle(ball * ball, sprite * paddle);
 alt_u8 breakout_collision(sprite *s1, sprite *s2);
 
 #endif /* BREAKOUT_H_ */

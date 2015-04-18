@@ -68,10 +68,10 @@ void game_event_pop(game_struct * g)
 
 			break;
 		case SPEED_DOWN:
-			g->speed = (g->speed > 9) ? g->speed - 1 : 5;
+			g->speed = (g->speed > 8) ? g->speed - 3 : 5;
 			break;
 		case SPEED_UP:
-			g->speed = (g->speed <= 10) ? g->speed + 1 : 10;
+			g->speed = (g->speed <= 15) ? g->speed + 3 : 15;
 			break;
 		default:
 			break;
@@ -139,24 +139,30 @@ void game_task(void* pdata)
 
 			display_move_sprite(display, game->ball.s, ball_new_x, ball_new_y);
 
-			// Check for collision with walls and paddle
+			// Check for collision with walls
 			for(j=0; j<3; j++)
 			{
 				if(breakout_collision(game->ball.s, game->walls[j]))
 				{
+					printf("Speed before : %f, %f\n", game->ball.v.x, game->ball.v.y);
 					if((j+1)%2==0)
+					{
 						game->ball.v.y *= -1;
+						display_move_sprite(display, game->ball.s, ball_new_x, 10);
+					}
 					else
+					{
 						game->ball.v.x *= -1;
+						display_move_sprite(display, game->ball.s, j==0 ? 10 : 770, ball_new_y);
+					}
+
+					printf("Speed after : %f, %f\n", game->ball.v.x, game->ball.v.y);
 				}
 			}
 
-
+			// Collision with paddle
 			if(breakout_collision(game->ball.s, game->paddle))
-			{
-				// Collision with paddle
-				game->ball.v.y *= -1;
-			}
+				breakout_ball_paddle(&(game->ball), game->paddle);
 
 			if(ball_new_x + BALL_WIDTH > DISPLAY_MAX_WIDTH || ball_new_y + BALL_HEIGHT > DISPLAY_MAX_HEIGHT)
 			{
