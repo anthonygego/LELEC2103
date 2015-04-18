@@ -119,6 +119,11 @@ void display_add_text(display_info *p, alt_u16 x, alt_u16 y, alt_u32 color, font
 
 void display_add_sprite(display_info *p, sprite *s)
 {
+	if(s->x < 0 || s->x > DISPLAY_MAX_WIDTH-s->width || s->y < 0 || s->y > DISPLAY_MAX_HEIGHT-s->height) {
+		printf("Assert error moving sprite to : %d, %d!\n", s->x, s->y);
+		return;
+	}
+
 	if(!s->type) {
 		// Same copies for the 2 frames
 		alt_sgdma_descriptor * desc1 = display_imgcpy_desc(p, 0, s, s->img_base, s->width, s->height);
@@ -137,6 +142,11 @@ void display_add_sprite(display_info *p, sprite *s)
 }
 
 void display_remove_sprite(display_info *p, sprite *s) {
+	if(s->x < 0 || s->x > DISPLAY_MAX_WIDTH-s->width || s->y < 0 || s->y > DISPLAY_MAX_HEIGHT-s->height) {
+		printf("Assert error moving sprite to : %d, %d!\n", s->x, s->y);
+		return;
+	}
+
 	if(!s->type) {
 		// Same copies for the 2 frames
 		alt_sgdma_descriptor * desc1 = display_imgcpy_desc(p, 0, s, ((alt_u32*)p->frame_buffer[0] + s->x+DISPLAY_MAX_WIDTH*s->y), DISPLAY_MAX_WIDTH, DISPLAY_MAX_HEIGHT);
@@ -151,6 +161,11 @@ void display_remove_sprite(display_info *p, sprite *s) {
 }
 
 void display_move_sprite(display_info *p, sprite *s, int to_x, int to_y) {
+	if(to_x < 0 || to_x > DISPLAY_MAX_WIDTH-s->width || to_y < 0 || to_y > DISPLAY_MAX_HEIGHT-s->height) {
+		printf("Assert error moving sprite to : %d, %d!\n", to_x, to_y);
+		return;
+	}
+
 	if(!s->type) { // If software sprite, remove and add
 		display_remove_sprite(p, s);
 		s->x = to_x;

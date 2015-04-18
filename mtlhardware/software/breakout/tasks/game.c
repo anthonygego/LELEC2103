@@ -16,71 +16,6 @@
 #include "breakout.h"
 #include "simpletext.h"
 
-void game_event_pop(game_struct * g)
-{
-	alt_u8 err;
-	display_info *display = g->periph.display_handle;
-
-	// Treat an event if queue is not empty
-	OSSemPend(g->events_queue->sem, 0, &err);
-	if(!queue_is_empty(g->events_queue))
-	{
-		alt_8 brick_placed = 0;
-		alt_u16 new_width;
-		game_event event = queue_pop(g->events_queue);
-		printf("Popping event : %d\n", event);
-		switch(event)
-		{
-		case ADD_LIFE:
-			g->lives++;
-			break;
-		case REMOVE_LIFE:
-			if(g->lives > 1)
-				g->lives--;
-			break;
-		case SWITCH_PADDLE_SIZE:
-			new_width = (g->paddle->width == 200) ? 100 : 200;
-			alt_u32 * new_base = (g->paddle->width == 200) ? (alt_u32*) TEXTURES_BASE + IMG_PADDLE100 : (alt_u32*) TEXTURES_BASE + IMG_PADDLE200;
-			alt_u8 * new_alpha = (g->paddle->width == 200) ? (alt_u8*) TEXTURES_BASE + ALPHA_PADDLE100*4 : (alt_u8*) TEXTURES_BASE + ALPHA_PADDLE200*4;
-
-			display_sprite_change(display, g->paddle, new_width, g->paddle->height, new_base, new_alpha);
-			break;
-		case ADD_BRICK:
-			if(g->rbricks == 167)
-				break;
-
-			while(!brick_placed)
-			{
-				alt_32 rnd = rand() % NBR_BRICKS;
-				if(!g->bricks[rnd].enabled && !breakout_collision(g->ball.s, g->bricks[rnd].s))
-				{
-					g->bricks[rnd].enabled = 1;
-					g->bricks[rnd].value = rand()%4 + 1;
-
-					g->bricks[rnd].s = display_sprite_init(display, 45+(rnd%14)*50+(rnd%14), 45+(rnd/14)*20+(rnd/14), 50, 20, display->bricks_img[g->bricks[rnd].value-1], 0, 0);
-					g->rbricks++;
-
-					display_add_sprite(display, g->bricks[rnd].s);
-					brick_placed = 1;
-					display_end_frame(display);
-				}
-			}
-
-			break;
-		case SPEED_DOWN:
-			g->speed = (g->speed > 8) ? g->speed - 3 : 5;
-			break;
-		case SPEED_UP:
-			g->speed = (g->speed <= 15) ? g->speed + 3 : 15;
-			break;
-		default:
-			break;
-		}
-
-	}
-	OSSemPost(g->events_queue->sem);
-}
-
 void game_task(void* pdata)
 {
 	game_struct * game = (game_struct*) pdata;
@@ -97,8 +32,10 @@ void game_task(void* pdata)
 		//
 		// Compute new coordinate for the paddle from accelerometer data
 		//
+
 		alt_u8 double_click = 0;
-		if(game->controller) {
+
+		if(game->controller && game->state != NOGAME) {
 			adxl345_read(game->periph.adxl345_handle, ADXL345_DATAX0, (alt_u8 *)  &adxl_c, 6);
 			adxl_mean = abs(adxl_c.y) <= 255 ? adxl_c.y/5 + 4*adxl_mean/5 : adxl_mean;
 
@@ -115,7 +52,6 @@ void game_task(void* pdata)
 			}
 		}
 
-
 		//
 		// Main Game logic
 		//
@@ -129,46 +65,33 @@ void game_task(void* pdata)
 					game->state = PAUSED;
 
 			// Pop event queue
-			game_event_pop(game);
+			breakout_event_pop(game);
 
-			// Update paddle and balls position
+			// Update paddle and ball position
 			display_move_sprite(display, game->paddle, accel_x, 440);
 
-			alt_u16 ball_new_x = game->ball.s->x + game->ball.v.x*game->speed;
-			alt_u16 ball_new_y = game->ball.s->y + game->ball.v.y*game->speed;
-
-			display_move_sprite(display, game->ball.s, ball_new_x, ball_new_y);
-
-			// Check for collision with walls
-			for(j=0; j<3; j++)
-			{
-				if(breakout_collision(game->ball.s, game->walls[j]))
-				{
-					printf("Speed before : %f, %f\n", game->ball.v.x, game->ball.v.y);
-					if((j+1)%2==0)
-					{
-						game->ball.v.y *= -1;
-						display_move_sprite(display, game->ball.s, ball_new_x, 10);
-					}
-					else
-					{
-						game->ball.v.x *= -1;
-						display_move_sprite(display, game->ball.s, j==0 ? 10 : 770, ball_new_y);
-					}
-
-					printf("Speed after : %f, %f\n", game->ball.v.x, game->ball.v.y);
-				}
-			}
+			alt_16 new_ball_x = game->ball.s->x + game->ball.v.x*game->speed;
+			alt_16 new_ball_y = game->ball.s->y + game->ball.v.y*game->speed;
 
 			// Collision with paddle
-			if(breakout_collision(game->ball.s, game->paddle))
+			if(breakout_ball_collision(&(game->ball), game->paddle, &new_ball_x, &new_ball_y))
 				breakout_ball_paddle(&(game->ball), game->paddle);
 
-			if(ball_new_x + BALL_WIDTH > DISPLAY_MAX_WIDTH || ball_new_y + BALL_HEIGHT > DISPLAY_MAX_HEIGHT)
+			// Check for collision with walls
+			if(new_ball_y < 10) {
+				game->ball.v.y *= -1;
+				new_ball_y = 10;
+				display_move_sprite(display, game->ball.s, new_ball_x, new_ball_y);
+			}
+			else if(new_ball_x > DISPLAY_MAX_WIDTH - 10 - BALL_WIDTH || new_ball_x < 10) {
+				game->ball.v.x *= -1;
+				new_ball_x = new_ball_x < 10 ? 10 : 770;
+				display_move_sprite(display, game->ball.s, new_ball_x, new_ball_y);
+			}
+			else if(new_ball_y + BALL_HEIGHT > DISPLAY_MAX_HEIGHT)
 			{
 				// Out of game
 				game->state = NOT_MOVING;
-				display_move_sprite(display, game->ball.s, game->paddle->x+game->paddle->width/2, game->paddle->y-20);
 
 				if(--(game->lives) <= 0)
 				{
@@ -182,6 +105,7 @@ void game_task(void* pdata)
 				else
 					printf("Lost ball ! Remaining lives : %d\n", game->lives);
 
+				display_move_sprite(display, game->ball.s, game->paddle->x+game->paddle->width/2, game->paddle->y-20);
 				display_end_frame(display);
 
 			}
@@ -190,13 +114,22 @@ void game_task(void* pdata)
 				alt_u8 collision = 0;
 				for(j=0; j<NBR_BRICKS && !collision; j++) {
 					if(game->bricks[j].enabled) {
-						alt_u8 collision_from = breakout_collision(game->ball.s, game->bricks[j].s);
+						alt_u8 collision_from = breakout_ball_collision(&(game->ball), game->bricks[j].s, &new_ball_x, &new_ball_y);
 						if(collision_from) {
 							// Collision with brick
-							game->score += SCORE_UNIT;
+							game->score += SCORE_UNIT*game->lives;
 							collision = 1;
 
 							display_remove_sprite(display, game->bricks[j].s);
+
+							new_ball_x = game->ball.s->x;
+							new_ball_y = game->ball.s->y;
+
+							// Compute new vector
+							if(collision_from == 1 || collision_from == 3) // left
+								game->ball.v.x *= -1;
+							else
+								game->ball.v.y *= -1;
 
 							if(game->bricks[j].value == 1) {
 								game->rbricks--;
@@ -210,13 +143,6 @@ void game_task(void* pdata)
 								game->bricks[j].value--;
 								display_add_sprite(display, game->bricks[j].s);
 							}
-
-
-							// Compute new vector
-							if(collision_from == 1) // horizontal
-								game->ball.v.x *= -1;
-							else // vertical
-								game->ball.v.y *= -1;
 
 							display_end_frame(display);
 						}
@@ -233,6 +159,7 @@ void game_task(void* pdata)
 					display_end_frame(display);
 				}
 
+				display_move_sprite(display, game->ball.s, new_ball_x, new_ball_y);
 			}
 
 			break;

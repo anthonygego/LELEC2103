@@ -74,8 +74,8 @@ typedef struct {
 } display_text;
 
 typedef struct {
-	alt_u16   x;
-	alt_u16   y;
+	alt_16   x;
+	alt_16   y;
 	alt_u16   width;
 	alt_u16   height;
 	alt_u32 * img_base;

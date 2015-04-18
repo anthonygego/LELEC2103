@@ -89,8 +89,10 @@ void breakout_ball_paddle(ball * ball, sprite * paddle)
 	speedy = sqrt(speed*speed - speedx*speedx) * (speedy > 0? -1 : 1);
 
 	speed = sqrt(speedx*speedx + speedy*speedy);
-	ball->v.x = speedx /speed;
-	ball->v.y = speedy/speed;
+	if(abs(speed) > 0.05) {
+		ball->v.x = speedx /speed;
+		ball->v.y = speedy/speed;
+	}
 }
 
 void breakout_init(game_struct * g, char * level, alt_8 controller)
@@ -180,25 +182,107 @@ void breakout_init(game_struct * g, char * level, alt_8 controller)
 	g->state = NOT_MOVING;
 }
 
-alt_u8 breakout_collision(sprite *s1, sprite *s2)
+alt_u8 breakout_ball_collision(ball *ball, sprite *s, alt_16 *new_ball_x, alt_16 *new_ball_y)
 {
-	alt_u16 x1 = s1->x;
-	alt_u16 y1 = s1->y;
-	alt_u16 w1 = s1->width;
-	alt_u16 h1 = s1->height;
-	alt_u16 x2 = s2->x;
-	alt_u16 y2 = s2->y;
-	alt_u16 w2 = s2->width;
-	alt_u16 h2 = s2->height;
-
 	alt_u8 result = 0;
-	if(!((x1 + w1 < x2) || (x2 + w2 < x1) || (y1 + h1 < y2) || (y2 + h2 < y1)))
+
+	// Simple collision check
+	if(!((*new_ball_x + ball->s->width < s->x) || (s->x + s->width < *new_ball_x) || (*new_ball_y + ball->s->height < s->y) || (s->y + s->height < *new_ball_y)))
 	{
-		if((x1 < x2 && x2 < x1 + w1) || (x1 < x2+w2 && x2+w2 < x1+w1))
-			result = 1;
-		else if((y1 < y2 && y2 < y1 + h1) || (y1 < y2+h2 && y2+h2 < y1+h1))
-			result = 2;
+		// Enhanced collision check, taking alpha channel into account
+		int i, j, collided = 0;
+		for(i=0; i < ball->s->height && !collided; i++)
+			for(j=0; j < ball->s->width && !collided; j++)
+				if(!(s->alpha[i*ball->s->width+j]) && !((*new_ball_x+j+1 < s->x) || (s->x + s->width < *new_ball_x+j) || (*new_ball_y+i+1 < s->y) || (s->y + s->height < *new_ball_y+i)))
+					collided = 1;
+
+		if(collided)
+		{
+			float w = 0.5 * (ball->s->width + s->width);
+			float h = 0.5 * (ball->s->height + s->height);
+			float dx = (*new_ball_x+ball->s->width)/2 - (s->x+ball->s->width)/2;
+			float dy = (*new_ball_y+ball->s->height)/2 - (s->y+ball->s->height)/2;
+
+			float wy = w * dy;
+			float hx = h * dx;
+
+			if (wy > hx)
+				if (wy > -hx)
+					return 2;
+				else
+					return 1;
+			else
+				if (wy > -hx)
+					return 3;
+				else
+					return 4;
+		}
 	}
 
 	return result;
+}
+
+void breakout_event_pop(game_struct * g)
+{
+	alt_u8 err;
+	display_info *display = g->periph.display_handle;
+
+	// Treat an event if queue is not empty
+	OSSemPend(g->events_queue->sem, 0, &err);
+	if(!queue_is_empty(g->events_queue))
+	{
+		alt_8 brick_placed = 0;
+		alt_u16 new_width;
+		game_event event = queue_pop(g->events_queue);
+		printf("Popping event : %d\n", event);
+		switch(event)
+		{
+		case ADD_LIFE:
+			g->lives++;
+			break;
+		case REMOVE_LIFE:
+			if(g->lives > 1)
+				g->lives--;
+			break;
+		case SWITCH_PADDLE_SIZE:
+			new_width = (g->paddle->width == 200) ? 100 : 200;
+			alt_u32 * new_base = (g->paddle->width == 200) ? (alt_u32*) TEXTURES_BASE + IMG_PADDLE100 : (alt_u32*) TEXTURES_BASE + IMG_PADDLE200;
+			alt_u8 * new_alpha = (g->paddle->width == 200) ? (alt_u8*) TEXTURES_BASE + ALPHA_PADDLE100*4 : (alt_u8*) TEXTURES_BASE + ALPHA_PADDLE200*4;
+
+			display_sprite_change(display, g->paddle, new_width, g->paddle->height, new_base, new_alpha);
+			break;
+		case ADD_BRICK:
+			if(g->rbricks == 167)
+				break;
+
+			while(!brick_placed)
+			{
+				alt_32 rnd = rand() % NBR_BRICKS;
+				if(!g->bricks[rnd].enabled && !breakout_ball_collision(&(g->ball), g->bricks[rnd].s, &(g->ball.s->x), &(g->ball.s->y)))
+				{
+					g->bricks[rnd].enabled = 1;
+					g->bricks[rnd].value = rand()%4 + 1;
+
+					g->bricks[rnd].s = display_sprite_init(display, 45+(rnd%14)*50+(rnd%14), 45+(rnd/14)*20+(rnd/14), 50, 20, display->bricks_img[g->bricks[rnd].value-1], 0, 0);
+					g->rbricks++;
+
+					display_add_sprite(display, g->bricks[rnd].s);
+					brick_placed = 1;
+					display_end_frame(display);
+				}
+			}
+
+			break;
+		case SPEED_DOWN:
+			g->speed = (g->speed > 8) ? g->speed - 3 : 5;
+			break;
+		case SPEED_UP:
+			g->speed = (g->speed <= 15) ? g->speed + 3 : 15;
+			break;
+		default:
+			break;
+		}
+
+	}
+	OSSemPost(g->events_queue->sem);
 }

@@ -18,7 +18,7 @@
 #define BALL_WIDTH         20
 #define BALL_HEIGHT        20
 #define NBR_BRICKS         168
-#define SCORE_UNIT		   20
+#define SCORE_UNIT		   5
 #define EVENT_QUEUE_SIZE   16
 
 typedef enum {
@@ -81,6 +81,7 @@ typedef struct {
 void   breakout_init(game_struct * g, char * level_filename, alt_8 controller);
 void   breakout_init_textures(game_struct * game);
 void   breakout_ball_paddle(ball * ball, sprite * paddle);
-alt_u8 breakout_collision(sprite *s1, sprite *s2);
+alt_u8 breakout_ball_collision(ball *ball, sprite *s, alt_16 * new_ball_x, alt_16 * new_ball_y);
+void   breakout_event_pop(game_struct * g);
 
 #endif /* BREAKOUT_H_ */
