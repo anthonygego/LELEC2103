@@ -107,7 +107,7 @@ void game_task(void* pdata)
 		}
 		else if(mtc_get_status(game->periph.mtc_handle, &mtc_event, &mtc_touchnum, &mtc_x1, &mtc_y1, &mtc_x2, &mtc_y2)){
 			if(mtc_y1 > 440) {
-				mtc_mean = (mtc_x1-50)/5 + 4*mtc_mean/5;
+				mtc_mean = (mtc_x1- game->paddle->width/2)/5 + 4*mtc_mean/5;
 				accel_x = (mtc_mean > 800-game->paddle->width) ? 800-game->paddle->width : (mtc_mean < 0) ? 0 : mtc_mean;
 			}
 			else if(mtc_event == MTC_ST_DOUBLECLICK && mtc_y1 < 430) {
