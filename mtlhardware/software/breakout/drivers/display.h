@@ -79,7 +79,7 @@ typedef struct {
 	alt_u16   width;
 	alt_u16   height;
 	alt_u32 * img_base;
-	alt_u8  * alpha;
+	alt_u8 * alpha;
 	alt_u8    type;
 } sprite;
 
@@ -87,7 +87,6 @@ display_info * display_init(alt_u32 mixer_base, alt_u32 bg_frame_base, alt_u32 s
 sprite       * display_sprite_init(display_info * p, alt_u16 x, alt_u16 y, alt_u16 width, alt_u16 height, alt_u32 * base, alt_u8 * alpha, alt_u8 type);
 
 void display_uninit(display_info* p);
-void display_go(display_info* p, alt_u8 bGo);
 void display_switch_frame(display_info* p);
 void display_frame_done(display_info *p);
 void display_move_sprite(display_info *p, sprite *s, int to_x, int to_y);
@@ -96,7 +95,7 @@ void display_add_sprite(display_info *p, sprite *s);
 void display_end_frame(display_info *p);
 void display_push_desc(display_info* p, alt_sgdma_descriptor * desc, alt_u8 frame);
 void display_push_dt(display_info* p, display_text * dt, alt_u8 frame);
-void display_sprite_size(display_info * p, sprite * s, alt_u16 width, alt_u16 height);
+void display_sprite_change(display_info * p, sprite * s, alt_u16 width, alt_u16 height, alt_u32 * img_base, alt_u8* alpha_base);
 void display_clear_screen(display_info *p);
 void display_add_text(display_info *p, alt_u16 x, alt_u16 y, alt_u32 color, font_struct * font, alt_u8 as_sprite, char* text);
 

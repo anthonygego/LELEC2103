@@ -46,7 +46,7 @@ __inline__ void simpletext_print_char(display_info * display, int x, int y, int 
 				simpletext_alpha_blending ((x+j), (y+i), *alpha, (unsigned char*) &new_color, display, as_sprite);
 
 				// Update pixel value
-				display->frame_buffer[!(display->displayed_frame)+1][y+i][x+j] = new_color;
+				IOWR(display->frame_buffer[!(display->displayed_frame)+1], (y+i)*DISPLAY_MAX_WIDTH + x+j, new_color);
 
 				alpha++;
 			}

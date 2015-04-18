@@ -19,6 +19,8 @@ void breakout_create_textures(game_struct * game)
 			display->frame_buffer[3][i][j] = 0x0;
 
 	display_clear_screen(display);
+	display_add_text(display, 175, 210, 0xffffff, tahomabold_32, 0, "Loading textures...");
+	display_end_frame(display);
 
 	for(i=0; i<480; i++)
 			for(j=0; j<800; j++)
@@ -35,40 +37,27 @@ void breakout_create_textures(game_struct * game)
 	while(!pic32_receive(game->periph.pic32_handle, (char **) &textures, &len, 0));
 	OSSemPost(game->periph.pic32_handle->sem);
 
+	for(i=0; i<8000; i++)
+		IOWR(TEXTURES_BASE, i, textures[i]);
 
-
-	for(i=0; i<500; i++)
-		IOWR(TEXTURES_BASE, IMG_BALL + i, textures[i]);
+	for(i=0; i<4000; i++)
+		IOWR(display->bricks_img[0], i, textures[8000+i]);
 
 	free(textures);
 
 	// Creating rest of textures
 
-	for(i=0; i<4000; i++)
-		IOWR(TEXTURES_BASE, IMG_PADDLE+ i, i%3==0 || i%11==0 ? 0x505050 : 0x000000);
-
-	for(i=0; i<4000; i++)
-		*((alt_u8*) TEXTURES_BASE+ ALPHA_PADDLE*4 + i) =  0x0;
-
-	for(i=0; i<1000; i++)
-		display->bricks_img[0][i] =  i%3==0 ? 0x005000 : 0x009000;
-
-	for(i=0; i<1000; i++)
-		display->bricks_img[1][i] =  i%3==0 ? 0x000050 : 0x000090;
-
-	for(i=0; i<1000; i++)
-		display->bricks_img[2][i] =  i%3==0 ? 0x500000 : 0x900000;
-
-	for(i=0; i<1000; i++)
-		display->bricks_img[3][i] =  i%3==0 ? 0x005050 : 0x009090;
-
 	for(i=0; i<4400; i++)
-		display->wall_vert_img[i] =  i%3==0 ? 0x0 : 0x4a4a4a;
+		display->wall_vert_img[i] =  i%3==0 ? 0x2a2a2a : 0x4a4a4a;
 
 	for(i=0; i<8000; i++)
 		display->wall_horiz_img[i] = i%3==0 ? 0x2a2a2a : 0x4a4a4a;
 
+	// Flush the cache
 	alt_dcache_flush_all();
+
+	display_add_text(display, 500, 210, 0xffffff, tahomabold_32, 0, "OK");
+	display_end_frame(display);
 }
 
 void breakout_uninit(game_struct * g)
@@ -96,6 +85,10 @@ void breakout_init(game_struct * g, char * level)
 	if(g->state != NOGAME)
 		breakout_uninit(g);
 
+	display_clear_screen(display);
+	display_add_text(display, 250, 210, 0xffffff, tahomabold_32, 0, "Loading game...");
+	display_end_frame(display);
+
 	// Initialize bricks
 	g->rbricks = 0;
 
@@ -122,7 +115,7 @@ void breakout_init(game_struct * g, char * level)
 	}
 
 	// Initialize paddle
-	g->paddle = display_sprite_init(display, 300,440, 200, 20, (alt_u32*) TEXTURES_BASE + IMG_PADDLE, (alt_u8*) TEXTURES_BASE + ALPHA_PADDLE*4, 1);
+	g->paddle = display_sprite_init(display, 300,440, 200, 20, (alt_u32*) TEXTURES_BASE + IMG_PADDLE200, (alt_u8*) TEXTURES_BASE + ALPHA_PADDLE200*4, 1);
 
 	// Initialize ball
 	g->ball.s = display_sprite_init(display, g->paddle->x+100,g->paddle->y-20, 20,20, (alt_u32*) TEXTURES_BASE + IMG_BALL, (alt_u8*) TEXTURES_BASE + ALPHA_BALL*4, 2);
@@ -159,17 +152,14 @@ void breakout_init(game_struct * g, char * level)
 	for(i=0; i< NBR_BRICKS; i++)
 			if(g->bricks[i].enabled) display_add_sprite(display, g->bricks[i].s);
 
+	// Display on screen
+	display_end_frame(display);
+
 	// Display ball
 	display_add_sprite(display, g->ball.s);
 
 	// Display paddle
 	display_add_sprite(display, g->paddle);
-
-	// Score text
-	display_add_text(display, 15, 15, 0xffffff, tahomabold_20, 0, "Score :");
-
-	// Display on screen
-	display_end_frame(display);
 
 	g->state = NOT_MOVING;
 }

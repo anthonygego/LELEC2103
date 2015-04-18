@@ -26,6 +26,7 @@ void game_event_pop(game_struct * g)
 	if(!queue_is_empty(g->events_queue))
 	{
 		alt_8 brick_placed = 0;
+		alt_u16 new_width;
 		game_event event = queue_pop(g->events_queue);
 		printf("Popping event : %d\n", event);
 		switch(event)
@@ -37,7 +38,11 @@ void game_event_pop(game_struct * g)
 			g->lives--;
 			break;
 		case SWITCH_PADDLE_SIZE:
-			display_sprite_size(g->periph.display_handle, g->paddle, (g->paddle->width == 200) ? 100 : 200, g->paddle->height);
+			new_width = (g->paddle->width == 200) ? 100 : 200;
+			alt_u32 * new_base = (g->paddle->width == 200) ? (alt_u32*) TEXTURES_BASE + IMG_PADDLE100 : (alt_u32*) TEXTURES_BASE + IMG_PADDLE200;
+			alt_u8 * new_alpha = (g->paddle->width == 200) ? (alt_u8*) TEXTURES_BASE + ALPHA_PADDLE100*4 : (alt_u8*) TEXTURES_BASE + ALPHA_PADDLE200*4;
+
+			display_sprite_change(g->periph.display_handle, g->paddle, new_width, g->paddle->height, new_base, new_alpha);
 			break;
 		case ADD_BRICK:
 			if(g->rbricks == 167)
@@ -83,6 +88,7 @@ void game_task(void* pdata)
 	alt_u16 mtc_x1, mtc_x2, mtc_y1, mtc_y2;
 	int delta, j;
 	alt_16 adxl_mean = 0;
+	char text[200];
 
 	while(1)
 	{
@@ -147,7 +153,8 @@ void game_task(void* pdata)
 				if(--(game->lives) <= 0)
 				{
 					game->state = LOST;
-					printf("Game over (score :%d) !\n", (int) game->score);
+					sprintf(text, "You loose !\nScore : %d", (int) game->score);
+					display_add_text(display, 300, 170, 0xffffff, tahomabold_32, 0, text);
 					display_remove_sprite(display, game->ball.s);
 					display_remove_sprite(display, game->paddle);
 				}
@@ -194,13 +201,14 @@ void game_task(void* pdata)
 
 				if(game->rbricks == 0) {
 					game->state = WON;
-					printf("Well done (score :%d) !\n", (int) game->score);
-					break;
+					sprintf(text, "You win !\nScore : %d", (int) game->score);
+					display_add_text(display, 300, 170, 0xffffff, tahomabold_32, 0, text);
+					display_remove_sprite(display, game->ball.s);
+					display_remove_sprite(display, game->paddle);
 				}
 
-				display_end_frame(display);
 			}
-
+			display_end_frame(display);
 			break;
 		//
 		// IF BALL IS NOT MOVING

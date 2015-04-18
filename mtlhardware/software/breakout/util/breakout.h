@@ -10,8 +10,10 @@
 
 #define IMG_BALL           0
 #define ALPHA_BALL         400
-#define IMG_PADDLE         500
-#define ALPHA_PADDLE       4500
+#define IMG_PADDLE200      500
+#define ALPHA_PADDLE200    4500
+#define IMG_PADDLE100      5500
+#define ALPHA_PADDLE100    7500
 
 #define BALL_WIDTH         20
 #define BALL_HEIGHT        20

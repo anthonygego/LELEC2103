@@ -200,8 +200,6 @@ void display_clear_screen(display_info *p)
 	// Push to the queue
 	display_push_desc(p, desc1, 0);
 	display_push_desc(p, desc2, 1);
-
-	display_end_frame(p);
 }
 
 alt_sgdma_descriptor * display_memcpy_desc(alt_u32 * dest, alt_u32 * src, alt_u32 length) {
@@ -277,8 +275,10 @@ sprite * display_sprite_init(display_info * p, alt_u16 x, alt_u16 y, alt_u16 wid
 	return s;
 }
 
-void display_sprite_size(display_info * p, sprite * s, alt_u16 width, alt_u16 height) {
+void display_sprite_change(display_info * p, sprite * s, alt_u16 width, alt_u16 height, alt_u32 * img_base, alt_u8* alpha_base) {
 
+	s->img_base = img_base;
+	s->alpha = alpha_base;
 	s->height = height;
 	s->width = width;
 
@@ -287,6 +287,7 @@ void display_sprite_size(display_info * p, sprite * s, alt_u16 width, alt_u16 he
 
 		// Image frame
 		IOWR(p->sprite_base[s->type-1], 0, 0);
+		IOWR(p->sprite_base[s->type-1], DISPLAY_FRAME0_BASE, (alt_u32) s->img_base);
 		IOWR(p->sprite_base[s->type-1], DISPLAY_FRAME0_WORDS, s->width*s->height);
 		IOWR(p->sprite_base[s->type-1], DISPLAY_FRAME0_COLOR_PATTERN, s->width*s->height);
 		IOWR(p->sprite_base[s->type-1], DISPLAY_FRAME0_WIDTH, s->width);
@@ -295,6 +296,7 @@ void display_sprite_size(display_info * p, sprite * s, alt_u16 width, alt_u16 he
 
 		// Alpha frame
 		IOWR(p->alpha_base[s->type-1], 0, 0);
+		IOWR(p->alpha_base[s->type-1], DISPLAY_FRAME0_BASE, (alt_u32) s->alpha);
 		IOWR(p->alpha_base[s->type-1], DISPLAY_FRAME0_WORDS, s->width*s->height/4);
 		IOWR(p->alpha_base[s->type-1], DISPLAY_FRAME0_COLOR_PATTERN, s->width*s->height);
 		IOWR(p->alpha_base[s->type-1], DISPLAY_FRAME0_WIDTH, s->width);
