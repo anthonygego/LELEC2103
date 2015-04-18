@@ -89,10 +89,8 @@ void breakout_ball_paddle(ball * ball, sprite * paddle)
 	speedy = sqrt(speed*speed - speedx*speedx) * (speedy > 0? -1 : 1);
 
 	speed = sqrt(speedx*speedx + speedy*speedy);
-	if(abs(speed) > 0.05) {
-		ball->v.x = speedx /speed;
-		ball->v.y = speedy/speed;
-	}
+	ball->v.x = speedx /speed;
+	ball->v.y = speedy/speed;
 }
 
 void breakout_init(game_struct * g, char * level, alt_8 controller)
