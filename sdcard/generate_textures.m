@@ -1,8 +1,8 @@
-function mybinfile
+function generate_textures
 
 fileID = fopen('textures.bin', 'w');
 
-[cdata , ~, alpha] = imread('glossy-ball.png');
+[cdata , ~, alpha] = imread('img/ball.png');
 
 for i= 1:20
     for j=1:20
@@ -20,7 +20,7 @@ for i= 1:20
 end
 
 for l=[200 100]
-    [cdata , ~, ~] = imread(sprintf('paddle%d.jpg', l));
+    [cdata , ~, ~] = imread(sprintf('img/paddle%d.jpg', l));
 
     for i= 1:20
         for j=1:l
@@ -40,7 +40,7 @@ end
 
 for l=1:4
 
-    [cdata , ~, ~] = imread(sprintf('brique%d.jpg', l));
+    [cdata , ~, ~] = imread(sprintf('img/brick%d.jpg', l));
 
     for i= 1:20
         for j=1:50

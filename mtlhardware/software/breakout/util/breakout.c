@@ -8,30 +8,29 @@
 #include "breakout.h"
 #include "simpletext.h"
 
-void breakout_create_textures(game_struct * game)
+void breakout_init_textures(game_struct * game)
 {
 	display_info * display = game->periph.display_handle;
-
+	alt_u32 * textures;
+	size_t len;
+	alt_u8 err;
 	int i,j;
 
-	for(i=0; i<480; i++)
-		for(j=0; j<800; j++)
-			display->frame_buffer[3][i][j] = 0x0;
+	// Black background for cleaning screen
+	for(i=0; i<480*480; i++)
+		IOWR(display->frame_buffer[3], i, 0x0);
 
+	// Clear screen and display loading message
 	display_clear_screen(display);
 	display_add_text(display, 175, 210, 0xffffff, tahomabold_32, 0, "Loading textures...");
 	display_end_frame(display);
 
+	// Create gradient background
 	for(i=0; i<480; i++)
-			for(j=0; j<800; j++)
-				display->frame_buffer[0][i][j] = 0xff0000 + ((i*255/480) << 8);
+		for(j=0; j<800; j++)
+			IOWR(display->frame_buffer[0], i*DISPLAY_MAX_WIDTH+j, 0xff0000 + ((i*255/480) << 8));
 
-	// Loading textures from SD card
-
-	alt_u32 * textures;
-	size_t len;
-
-	alt_u8 err;
+	// Loading ball, paddle and bricks textures from SD card
 	OSSemPend(game->periph.pic32_handle->sem, 0, &err);
 	pic32_sendrpc(game->periph.pic32_handle, "textures.bin", 13, CYCLONE_RPC_FILE);
 	while(!pic32_receive(game->periph.pic32_handle, (char **) &textures, &len, 0));
@@ -45,17 +44,14 @@ void breakout_create_textures(game_struct * game)
 
 	free(textures);
 
-	// Creating rest of textures
-
+	// Creating wall textures
 	for(i=0; i<4400; i++)
-		display->wall_vert_img[i] =  i%3==0 ? 0x2a2a2a : 0x4a4a4a;
+		IOWR(display->wall_vert_img, i,  i%3==0 ? 0x2a2a2a : 0x4a4a4a);
 
 	for(i=0; i<8000; i++)
-		display->wall_horiz_img[i] = i%3==0 ? 0x2a2a2a : 0x4a4a4a;
+		IOWR(display->wall_horiz_img, i, i%3==0 ? 0x2a2a2a : 0x4a4a4a);
 
-	// Flush the cache
-	alt_dcache_flush_all();
-
+	// Display loading is finished
 	display_add_text(display, 500, 210, 0xffffff, tahomabold_32, 0, "OK");
 	display_end_frame(display);
 }
@@ -77,7 +73,7 @@ void breakout_uninit(game_struct * g)
 		free(g->walls[i]);
 }
 
-void breakout_init(game_struct * g, char * level)
+void breakout_init(game_struct * g, char * level, alt_8 controller)
 {
 	display_info * display = g->periph.display_handle;
 
@@ -85,6 +81,7 @@ void breakout_init(game_struct * g, char * level)
 	if(g->state != NOGAME)
 		breakout_uninit(g);
 
+	// Clear the screen and display loading message
 	display_clear_screen(display);
 	display_add_text(display, 250, 210, 0xffffff, tahomabold_32, 0, "Loading game...");
 	display_end_frame(display);
@@ -93,21 +90,17 @@ void breakout_init(game_struct * g, char * level)
 	g->rbricks = 0;
 
 	int i, j;
-	for(i=0; i< 12; i++)
-	{
-		for(j=0; j < 14; level++)
-		{
+	for(i=0; i< 12; i++) {
+		for(j=0; j < 14; level++) {
 			g->bricks[i*14+j].enabled = 1;
 			g->bricks[i*14+j].value = *level-'0';
 
-			if(g->bricks[i*14+j].value > 0 && g->bricks[i*14+j].value < 5)
-			{
+			if(g->bricks[i*14+j].value > 0 && g->bricks[i*14+j].value < 5) {
 				g->bricks[i*14+j].s = display_sprite_init(display, 45+j*50+j, 45+i*20+i, 50, 20, display->bricks_img[g->bricks[i*14+j].value-1], 0, 0);
 				g->rbricks++;
 				j++;
 			}
-			else if(*level == '*')
-			{
+			else if(*level == '*') {
 				g->bricks[i*14+j].enabled = 0;
 				j++;
 			}
@@ -139,6 +132,9 @@ void breakout_init(game_struct * g, char * level)
 	// Initialize events queue
 	g->events_queue = queue_new(EVENT_QUEUE_SIZE);
 
+	// Set controller
+	g->controller = controller;
+
 	// Display background
 	sprite * s = display_sprite_init(display, 0,0, 800, 480, (alt_u32*) display->frame_buffer[0], 0, 0);
 	display_add_sprite(display, s);
@@ -152,7 +148,7 @@ void breakout_init(game_struct * g, char * level)
 	for(i=0; i< NBR_BRICKS; i++)
 			if(g->bricks[i].enabled) display_add_sprite(display, g->bricks[i].s);
 
-	// Display on screen
+	// End software frame
 	display_end_frame(display);
 
 	// Display ball

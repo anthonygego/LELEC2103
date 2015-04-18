@@ -19,10 +19,10 @@
 void game_event_pop(game_struct * g)
 {
 	alt_u8 err;
+	display_info *display = g->periph.display_handle;
 
 	// Treat an event if queue is not empty
 	OSSemPend(g->events_queue->sem, 0, &err);
-	//
 	if(!queue_is_empty(g->events_queue))
 	{
 		alt_8 brick_placed = 0;
@@ -35,14 +35,15 @@ void game_event_pop(game_struct * g)
 			g->lives++;
 			break;
 		case REMOVE_LIFE:
-			g->lives--;
+			if(g->lives > 1)
+				g->lives--;
 			break;
 		case SWITCH_PADDLE_SIZE:
 			new_width = (g->paddle->width == 200) ? 100 : 200;
 			alt_u32 * new_base = (g->paddle->width == 200) ? (alt_u32*) TEXTURES_BASE + IMG_PADDLE100 : (alt_u32*) TEXTURES_BASE + IMG_PADDLE200;
 			alt_u8 * new_alpha = (g->paddle->width == 200) ? (alt_u8*) TEXTURES_BASE + ALPHA_PADDLE100*4 : (alt_u8*) TEXTURES_BASE + ALPHA_PADDLE200*4;
 
-			display_sprite_change(g->periph.display_handle, g->paddle, new_width, g->paddle->height, new_base, new_alpha);
+			display_sprite_change(display, g->paddle, new_width, g->paddle->height, new_base, new_alpha);
 			break;
 		case ADD_BRICK:
 			if(g->rbricks == 167)
@@ -56,20 +57,21 @@ void game_event_pop(game_struct * g)
 					g->bricks[rnd].enabled = 1;
 					g->bricks[rnd].value = rand()%4 + 1;
 
-					g->bricks[rnd].s = display_sprite_init(g->periph.display_handle, 45+(rnd%14)*50+(rnd%14), 45+(rnd/14)*20+(rnd/14), 50, 20, g->periph.display_handle->bricks_img[g->bricks[rnd].value-1], 0, 0);
+					g->bricks[rnd].s = display_sprite_init(display, 45+(rnd%14)*50+(rnd%14), 45+(rnd/14)*20+(rnd/14), 50, 20, display->bricks_img[g->bricks[rnd].value-1], 0, 0);
 					g->rbricks++;
 
-					display_add_sprite(g->periph.display_handle, g->bricks[rnd].s);
+					display_add_sprite(display, g->bricks[rnd].s);
 					brick_placed = 1;
+					display_end_frame(display);
 				}
 			}
 
 			break;
 		case SPEED_DOWN:
-			g->speed = (g->speed > 10) ? g->speed - 5 : 5;
+			g->speed = (g->speed > 9) ? g->speed - 1 : 5;
 			break;
 		case SPEED_UP:
-			g->speed = (g->speed <= 20) ? g->speed + 5 : 20;
+			g->speed = (g->speed <= 10) ? g->speed + 1 : 10;
 			break;
 		default:
 			break;
@@ -86,8 +88,8 @@ void game_task(void* pdata)
 	adxl345_coordinates adxl_c;
 	alt_u8 mtc_event, mtc_touchnum;
 	alt_u16 mtc_x1, mtc_x2, mtc_y1, mtc_y2;
-	int delta, j;
-	alt_16 adxl_mean = 0;
+	alt_16 adxl_mean = 0, mtc_mean = 300;
+	int delta, j, accel_x = 300;
 	char text[200];
 
 	while(1)
@@ -95,11 +97,24 @@ void game_task(void* pdata)
 		//
 		// Compute new coordinate for the paddle from accelerometer data
 		//
-		adxl345_read(game->periph.adxl345_handle, ADXL345_DATAX0, (alt_u8 *)  &adxl_c, 6);
-		adxl_mean = abs(adxl_c.y) <= 255 ? adxl_c.y/5 + 4*adxl_mean/5 : adxl_mean;
+		alt_u8 double_click = 0;
+		if(game->controller) {
+			adxl345_read(game->periph.adxl345_handle, ADXL345_DATAX0, (alt_u8 *)  &adxl_c, 6);
+			adxl_mean = abs(adxl_c.y) <= 255 ? adxl_c.y/5 + 4*adxl_mean/5 : adxl_mean;
 
-		int accel_x = (-adxl_mean*32/10)+400-game->paddle->width/2;
-		accel_x = (accel_x > 800-game->paddle->width) ? 800-game->paddle->width : (accel_x < 0) ? 0 : accel_x;
+			accel_x = (-adxl_mean*32/10)+400-game->paddle->width/2;
+			accel_x = (accel_x > 800-game->paddle->width) ? 800-game->paddle->width : (accel_x < 0) ? 0 : accel_x;
+		}
+		else if(mtc_get_status(game->periph.mtc_handle, &mtc_event, &mtc_touchnum, &mtc_x1, &mtc_y1, &mtc_x2, &mtc_y2)){
+			if(mtc_y1 > 440) {
+				mtc_mean = (mtc_x1-50)/5 + 4*mtc_mean/5;
+				accel_x = (mtc_mean > 800-game->paddle->width) ? 800-game->paddle->width : (mtc_mean < 0) ? 0 : mtc_mean;
+			}
+			else if(mtc_event == MTC_ST_DOUBLECLICK && mtc_y1 < 430) {
+				double_click = 1;
+			}
+		}
+
 
 		//
 		// Main Game logic
@@ -109,8 +124,8 @@ void game_task(void* pdata)
 		case BALL_MOVING:
 
 			// If a double click is done, launch the ball(s)
-			if(mtc_get_status(game->periph.mtc_handle, &mtc_event, &mtc_touchnum, &mtc_x1, &mtc_y1, &mtc_x2, &mtc_y2))
-				if(mtc_event == MTC_ST_DOUBLECLICK)
+			if(double_click || mtc_get_status(game->periph.mtc_handle, &mtc_event, &mtc_touchnum, &mtc_x1, &mtc_y1, &mtc_x2, &mtc_y2))
+				if(double_click || (mtc_event == MTC_ST_DOUBLECLICK && mtc_y1 < 440))
 					game->state = PAUSED;
 
 			// Pop event queue
@@ -148,7 +163,6 @@ void game_task(void* pdata)
 				// Out of game
 				game->state = NOT_MOVING;
 				display_move_sprite(display, game->ball.s, game->paddle->x+game->paddle->width/2, game->paddle->y-20);
-				display_end_frame(display);
 
 				if(--(game->lives) <= 0)
 				{
@@ -156,10 +170,13 @@ void game_task(void* pdata)
 					sprintf(text, "You loose !\nScore : %d", (int) game->score);
 					display_add_text(display, 300, 170, 0xffffff, tahomabold_32, 0, text);
 					display_remove_sprite(display, game->ball.s);
+					display_move_sprite(display, game->paddle, 300, game->paddle->y);
 					display_remove_sprite(display, game->paddle);
 				}
 				else
 					printf("Lost ball ! Remaining lives : %d\n", game->lives);
+
+				display_end_frame(display);
 
 			}
 			else
@@ -195,6 +212,7 @@ void game_task(void* pdata)
 							else // vertical
 								game->ball.v.y *= -1;
 
+							display_end_frame(display);
 						}
 					}
 				}
@@ -204,19 +222,21 @@ void game_task(void* pdata)
 					sprintf(text, "You win !\nScore : %d", (int) game->score);
 					display_add_text(display, 300, 170, 0xffffff, tahomabold_32, 0, text);
 					display_remove_sprite(display, game->ball.s);
+					display_move_sprite(display, game->paddle, 300, game->paddle->y);
 					display_remove_sprite(display, game->paddle);
+					display_end_frame(display);
 				}
 
 			}
-			display_end_frame(display);
+
 			break;
 		//
 		// IF BALL IS NOT MOVING
 		//
 		case NOT_MOVING:
 			// If a double click is done, launch the ball(s)
-			if(mtc_get_status(game->periph.mtc_handle, &mtc_event, &mtc_touchnum, &mtc_x1, &mtc_y1, &mtc_x2, &mtc_y2))
-				if(mtc_event == MTC_ST_DOUBLECLICK)
+			if(double_click || mtc_get_status(game->periph.mtc_handle, &mtc_event, &mtc_touchnum, &mtc_x1, &mtc_y1, &mtc_x2, &mtc_y2))
+				if(double_click || (mtc_event == MTC_ST_DOUBLECLICK && mtc_y1 < 440))
 					game->state = BALL_MOVING;
 
 			// Update paddle and balls position
@@ -224,17 +244,14 @@ void game_task(void* pdata)
 			display_move_sprite(display, game->ball.s, (game->ball.s->x) + delta, game->ball.s->y);
 			display_move_sprite(display, game->paddle, accel_x, 440);
 
-			//vid_print_string_alpha(display, 20,20,0xffffff, tahomabold_20, "LOL : 42");
-
-			display_end_frame(display);
 			break;
 		//
 		// IF GAME IS PAUSED
 		//
 		case PAUSED:
 			// If a double click is done, launch the ball(s)
-			if(mtc_get_status(game->periph.mtc_handle, &mtc_event, &mtc_touchnum, &mtc_x1, &mtc_y1, &mtc_x2, &mtc_y2))
-				if(mtc_event == MTC_ST_DOUBLECLICK)
+			if(double_click || mtc_get_status(game->periph.mtc_handle, &mtc_event, &mtc_touchnum, &mtc_x1, &mtc_y1, &mtc_x2, &mtc_y2))
+				if(double_click || (mtc_event == MTC_ST_DOUBLECLICK && mtc_y1 < 440))
 					game->state = BALL_MOVING;
 			break;
 		default:

@@ -69,6 +69,7 @@ typedef struct {
 	ball        ball;
 	brick       bricks[168];
 	sprite    * walls[3];
+	alt_8       controller;
 	alt_8       speed;
 	alt_8       lives;
 	alt_8       rbricks;
@@ -77,8 +78,8 @@ typedef struct {
 } game_struct;
 
 
-void   breakout_init(game_struct * g, char * level_filename);
-void   breakout_create_textures(game_struct * game);
+void   breakout_init(game_struct * g, char * level_filename, alt_8 controller);
+void   breakout_init_textures(game_struct * game);
 alt_u8 breakout_collision(sprite *s1, sprite *s2);
 
 #endif /* BREAKOUT_H_ */

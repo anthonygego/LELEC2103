@@ -82,7 +82,5 @@ void simpletext_print(display_info * display, int x, int y, int color , font_str
 			}
 		}
 	}
-
-	alt_dcache_flush_all();
 }
 

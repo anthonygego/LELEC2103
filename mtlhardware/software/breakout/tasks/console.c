@@ -35,101 +35,40 @@ void console_task(void* pdata)
 		else if(!strncmp(command, "MyGame", 6))
 		{
 			int level;
-			char level_file[100];
-
 			printf("Enter a level :\n");
 			scanf("%d", &level);
 
-			sprintf(level_file, "level%02d.txt", level);
-
-			char * level_text;
-			size_t len;
-
-			alt_u8 err;
-			OSSemPend(game->periph.pic32_handle->sem, 0, &err);
-			pic32_sendrpc(game->periph.pic32_handle, level_file, 12, CYCLONE_RPC_FILE);
-			while(!pic32_receive(game->periph.pic32_handle, &level_text, &len, 0));
-			OSSemPost(game->periph.pic32_handle->sem);
-
-			breakout_init(game, level_text);
-
-			free(level_text);
-		}else if(!strncmp(command, "AddBrick", 8))
+			rpc_game_start(game, level);
+		}
+		else if(!strncmp(command, "AddBrick", 8))
 		{
 			printf("Add brick\n");
-			alt_u8 err;
-            OSSemPend(game->events_queue->sem, 0, &err);
-			queue_push(game->events_queue, ADD_BRICK);
-			OSSemPost(game->events_queue->sem);
-		}else if(!strncmp(command, "AddLife", 7))
+			rpc_game_event(game, ADD_BRICK);
+		}
+		else if(!strncmp(command, "AddLife", 7))
 		{
 			printf("Add life\n");
-			alt_u8 err;
-			OSSemPend(game->events_queue->sem, 0, &err);
-			queue_push(game->events_queue, ADD_LIFE);
-			OSSemPost(game->events_queue->sem);
-		}else if(!strncmp(command, "RemLife", 7))
+			rpc_game_event(game, ADD_LIFE);
+		}
+		else if(!strncmp(command, "RemLife", 7))
 		{
 			printf("Remove life\n");
-			alt_u8 err;
-		    OSSemPend(game->events_queue->sem, 0, &err);
-			queue_push(game->events_queue, REMOVE_LIFE);
-			OSSemPost(game->events_queue->sem);
-		}else if(!strncmp(command, "SpeedUp", 7))
+			rpc_game_event(game, REMOVE_LIFE);
+		}
+		else if(!strncmp(command, "SpeedUp", 7))
 		{
 			printf("Speed up\n");
-			alt_u8 err;
-			OSSemPend(game->events_queue->sem, 0, &err);
-			queue_push(game->events_queue, SPEED_UP);
-			OSSemPost(game->events_queue->sem);
-		}else if(!strncmp(command, "SpeedDown", 9))
+			rpc_game_event(game, SPEED_UP);
+		}
+		else if(!strncmp(command, "SpeedDown", 9))
 		{
 			printf("Speed down\n");
-			alt_u8 err;
-			OSSemPend(game->events_queue->sem, 0, &err);
-			queue_push(game->events_queue, SPEED_DOWN);
-			OSSemPost(game->events_queue->sem);
-		}else if(!strncmp(command, "PaddleSize", 10))
+			rpc_game_event(game, SPEED_DOWN);
+		}
+		else if(!strncmp(command, "PaddleSize", 10))
 		{
 			printf("Paddle size\n");
-			alt_u8 err;
-			OSSemPend(game->events_queue->sem, 0, &err);
-			queue_push(game->events_queue, SWITCH_PADDLE_SIZE);
-			OSSemPost(game->events_queue->sem);
-		}else if(!strncmp(command, "MyMIWI", 6))
-		{
-			char buffer[256];
-			mpack_writer_t writer;
-			mpack_writer_init_buffer(&writer, buffer, sizeof(buffer));
-
-			// write the example on the msgpack homepage
-			mpack_start_map(&writer, 2);
-			mpack_write_cstr(&writer, "compact");
-			mpack_write_bool(&writer, 1);
-			mpack_write_cstr(&writer, "schema");
-			mpack_write_uint(&writer, 72);
-			mpack_finish_map(&writer);
-
-			// clean up
-			size_t count = mpack_writer_buffer_used(&writer);
-			mpack_writer_destroy(&writer);
-
-			pic32_sendrpc(game->periph.pic32_handle, buffer, count, CYCLONE_RPC_MIWI);
-
-			printf("Message sent !\n\n");
-		}
-		else if(!strncmp(command, "MyFile", 6))
-		{
-			printf("Loading text file !\n");
-			char * msg;
-			size_t len;
-
-			pic32_sendrpc(game->periph.pic32_handle, "test.txt", 9, CYCLONE_RPC_FILE);
-			while(!pic32_receive(game->periph.pic32_handle, &msg, &len, 0));
-
-			fwrite(msg,1,len,stdout);
-			free(msg);
-			printf("\n");
+			rpc_game_event(game, SWITCH_PADDLE_SIZE);
 		}
 		else if(!strncmp(command, "MyMultiTouch", 12))
 		{

@@ -25,7 +25,7 @@ void rpc_game_start(game_struct * game, alt_u8 level)
 	char * level_text;
 	size_t len;
 
-	sprintf(level_file, "level%02d.txt", (int) level);
+	sprintf(level_file, "level%02d.txt", (int) level%100);
 
 	alt_u8 err;
 	OSSemPend(game->periph.pic32_handle->sem, 0, &err);
@@ -33,7 +33,7 @@ void rpc_game_start(game_struct * game, alt_u8 level)
 	while(!pic32_receive(game->periph.pic32_handle, &level_text, &len, 0));
 	OSSemPost(game->periph.pic32_handle->sem);
 
-	breakout_init(game, level_text);
+	breakout_init(game, level_text, level < 100);
 
 	free(level_text);
 }
