@@ -67,7 +67,7 @@
             <div class="tab-content">
                 <div role="tabpanel" class="tab-pane active" id="newgame">
                     <h4 style="margin-top:20px;">Start a new game</h4>
-                    <form class="form-inline" method="post">
+                    <form class="form-horizontal" style="margin:15px;" method="post">
                         <div class="form-group">
                             <label class="control-label" labelfor="level">Select level :</label>
                             <select class="form-control" name="level">
@@ -76,9 +76,16 @@
                             </select>
                         </div>
                         <div class="form-group">
+                            <label class="control-label" labelfor="level">Paddle controller :</label>
+                            <select class="form-control" name="controller" id="controller">
+                                <option value="0" selected>Accelerometer</option>
+                                <option value="1">Multi-Touch</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <button type="submit" class="btn btn-default">Launch game</button>
                         </div>
-                    </form>	
+                    </form>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="curgame">  
                     <h4 id="game_status" style="margin-top:20px;">Status : Not playing</h4>

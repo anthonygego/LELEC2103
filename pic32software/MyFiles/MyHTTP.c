@@ -237,6 +237,7 @@ HTTP_IO_RESULT HTTPExecutePost(void)
 static HTTP_IO_RESULT HTTPPostGame(void)
 {
     BYTE cmd[8];
+    int level, controller;
     BYTE arg[HTTP_MAX_DATA_LEN];
 
     if(TCPIsGetReady(sktHTTP) < curHTTP.byteCount)
@@ -250,12 +251,23 @@ static HTTP_IO_RESULT HTTPPostGame(void)
 		return HTTP_IO_NEED_DATA;
 
         if(!strcmppgm2ram((char*)cmd, (ROM char*)"level"))
+        {
             if(HTTPReadPostValue(arg, HTTP_MAX_DATA_LEN) == HTTP_READ_INCOMPLETE)
                 return HTTP_IO_NEED_DATA;
+
+            level = atoi(arg);
+        }
+        else if(!strcmppgm2ram((char*)cmd, (ROM char*)"controller"))
+        {
+            if(HTTPReadPostValue(arg, HTTP_MAX_DATA_LEN) == HTTP_READ_INCOMPLETE)
+                return HTTP_IO_NEED_DATA;
+
+            controller = atoi(arg);
+        }
     }
 
     char test[200];
-    sprintf(test, "Level to load : %d\n", atoi(arg));
+    sprintf(test, "Level and controller to load : %d, %d\n", level, controller);
     MyConsole_SendMsg(test);
 
     // encode to memory buffer
@@ -270,7 +282,7 @@ static HTTP_IO_RESULT HTTPPostGame(void)
     mpack_write_u8(&writer, 1);
 
     mpack_write_cstr(&writer, "value");
-    mpack_write_u8(&writer, (unsigned int) atoi(arg));
+    mpack_write_u8(&writer, (unsigned int) level+100*controller);
 
     mpack_finish_map(&writer);
 
