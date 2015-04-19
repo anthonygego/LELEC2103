@@ -8,7 +8,7 @@
     <script type="text/javascript">
     var game_state = ["Paused","Playing - Launch the ball !","Playing","Not playing","You lost !","You won !"];
     var loaded_once = false;
-
+    
     function statusLoop() {
         $.ajax({
             url : 'game.json',
@@ -68,22 +68,30 @@
                 <div role="tabpanel" class="tab-pane active" id="newgame">
                     <h4 style="margin-top:20px;">Start a new game</h4>
                     <form class="form-horizontal" style="margin:15px;" method="post">
-                        <div class="form-group">
-                            <label class="control-label" labelfor="level">Select level :</label>
-                            <select class="form-control" name="level">
-                                <option value="1" selected>Level 1</option>
-                                <option value="2">Level 2</option>
-                            </select>
+                        <div class="col-xs-9 col-md-8">
+                            <div class="form-group">
+                                <label class="control-label" labelfor="level">Select level :</label>
+                                <select class="form-control" name="level" id="level">
+                                    <option value="1" selected>Level 1</option>
+                                    <option value="2">Level 2</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label" labelfor="level">Paddle controller :</label>
+                                <select class="form-control" name="controller" id="controller">
+                                    <option value="0" selected>Accelerometer</option>
+                                    <option value="1">Multi-Touch</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-default">Launch game</button>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="control-label" labelfor="level">Paddle controller :</label>
-                            <select class="form-control" name="controller" id="controller">
-                                <option value="0" selected>Accelerometer</option>
-                                <option value="1">Multi-Touch</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-default">Launch game</button>
+                        <div class="col-xs-9 col-md-offset-1 col-md-3">
+                            <div class="form-group">
+                                <label class="control-label">Level preview :</label>
+                                <br/><img id="imlevel" src="img/level01.jpg">
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -151,5 +159,13 @@
             </div>
         </div>
     </footer>
+    <script type="text/javascript">
+    $("#level").change(function() {
+        if($("#level").val() < 10)
+            $('#imlevel').attr("src","img/level0"+$("#level").val()+".jpg");
+        else
+            $('#imlevel').attr("src","img/level"+$("#level").val()+".jpg");
+    });
+    </script>
 </body>
 </html>

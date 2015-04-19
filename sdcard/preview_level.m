@@ -68,6 +68,6 @@ for i=1:8000
 end
 
 imwrite(img, sprintf('preview/level%02d.png', level));
-imwrite(imresize(img, 0.25), sprintf('preview/level%02d_thumb.jpg', level));
+imwrite(imresize(img, 0.25), sprintf('preview_thumb/level%02d.jpg', level));
 end
 
