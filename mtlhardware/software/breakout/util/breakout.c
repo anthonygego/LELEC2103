@@ -176,8 +176,6 @@ void breakout_init(game_struct * g, char * level, alt_8 controller)
 
 alt_u8 breakout_ball_collision(ball ball, sprite s, alt_16 *new_ball_x, alt_16 *new_ball_y)
 {
-	alt_u8 result = 0;
-
 	// Simple collision check
 	if(!((*new_ball_x + ball.s.width < s.x) || (s.x + s.width < *new_ball_x) || (*new_ball_y + ball.s.height < s.y) || (s.y + s.height < *new_ball_y)))
 	{
@@ -190,28 +188,30 @@ alt_u8 breakout_ball_collision(ball ball, sprite s, alt_16 *new_ball_x, alt_16 *
 
 		if(collided)
 		{
+			//  Minkowski sum of sprite and ball
 			float w = (ball.s.width + s.width)/2;
 			float h = (ball.s.height + s.height)/2;
 			float dx = (*new_ball_x+ball.s.width)/2 - (s.x+ball.s.width)/2;
 			float dy = (*new_ball_y+ball.s.height)/2 - (s.y+ball.s.height)/2;
-
 			float wy = w * dy;
 			float hx = h * dx;
 
+			// checking where the center of rectangle A lies relatively
+			// to its diagonals to know where the collision is happening
 			if (wy > hx)
 				if (wy > -hx)
-					return 2;
+					return 2; // Top
 				else
-					return 1;
+					return 1; // Left
 			else
 				if (wy > -hx)
-					return 3;
+					return 3; // Right
 				else
-					return 4;
+					return 4; // Bottom
 		}
 	}
 
-	return result;
+	return 0;
 }
 
 void breakout_event_pop(game_struct * g)
@@ -224,9 +224,10 @@ void breakout_event_pop(game_struct * g)
 	if(!queue_is_empty(g->events_queue))
 	{
 		alt_8 brick_placed = 0;
-		alt_u16 new_width;
+		alt_u16 new_paddle_width = 0;
 		game_event event = queue_pop(g->events_queue);
 		printf("Popping event : %d\n", event);
+
 		switch(event)
 		{
 		case ADD_LIFE:
@@ -237,11 +238,11 @@ void breakout_event_pop(game_struct * g)
 				g->lives--;
 			break;
 		case SWITCH_PADDLE_SIZE:
-			new_width = (g->paddle.width == 200) ? 100 : 200;
+			new_paddle_width = (g->paddle.width == 200) ? 100 : 200;
 			alt_u32 * new_base = (g->paddle.width == 200) ? (alt_u32*) TEXTURES_BASE + IMG_PADDLE100 : (alt_u32*) TEXTURES_BASE + IMG_PADDLE200;
 			alt_u8 * new_alpha = (g->paddle.width == 200) ? (alt_u8*) TEXTURES_BASE + ALPHA_PADDLE100*4 : (alt_u8*) TEXTURES_BASE + ALPHA_PADDLE200*4;
 
-			display_sprite_change(display, &g->paddle, new_width, g->paddle.height, new_base, new_alpha);
+			display_sprite_change(display, &g->paddle, new_paddle_width, g->paddle.height, new_base, new_alpha);
 			break;
 		case ADD_BRICK:
 			if(g->rbricks == 167)

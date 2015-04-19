@@ -32,13 +32,10 @@ void console_task(void* pdata)
 		{
 			printf("MyTest ok !\n");
 		}
-		else if(!strncmp(command, "MyGame", 6))
+		else if(!strncmp(command, "NewGame", 7))
 		{
-			int level;
-			printf("Enter a level :\n");
-			scanf("%d", &level);
-
-			rpc_game_start(game, level);
+			printf("Loading level : %d\n", atoi(command+8)%100);
+			rpc_game_start(game, atoi(command+8));
 		}
 		else if(!strncmp(command, "AddBrick", 8))
 		{
@@ -69,25 +66,6 @@ void console_task(void* pdata)
 		{
 			printf("Paddle size\n");
 			rpc_game_event(game, SWITCH_PADDLE_SIZE);
-		}
-		else if(!strncmp(command, "MyMultiTouch", 12))
-		{
-			alt_u8 event, touchnum;
-			alt_u16 x1,x2,y1,y2;
-
-			if(mtc_get_status(game->mtc_handle, &event, &touchnum, &x1, &y1, &x2, &y2))
-				if(touchnum == 2)
-					printf("x1: %3d, y1: %3d\nx2: %3d, y2: %3d\nTouch num : %d\nEvent : 0x%X\n", x1, y1, x2, y2, touchnum, event);
-				else
-					printf("x1: %3d, y1: %3d\nTouch num : %d\nEvent : 0x%X\n", x1, y1, touchnum, event);
-			else
-				printf("No new point\n");
-		}
-		else if(!strncmp(command, "MyADXL", 6))
-		{
-			adxl345_coordinates c;
-			adxl345_read(game->adxl345_handle, ADXL345_DATAX0, (alt_u8 *)  &c, 6);
-			printf("X : %d - Y: %d, Z : %d\n", c.x, c.y, c.z);
 		}
 		else
 			printf("Unknown Command\n");
