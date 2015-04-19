@@ -54,7 +54,7 @@ void rpc_task(void* pdata)
 
 		if(has_msg)
 		{
-			//printf("---Received RPC message of size %d !\n", len);
+			printf("---Received RPC message of size %d !\n", len);
 
 			// Initialize tree for reading
 			mpack_tree_t tree;

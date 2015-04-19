@@ -267,10 +267,10 @@ void breakout_event_pop(game_struct * g)
 
 			break;
 		case SPEED_DOWN:
-			g->speed = (g->speed > 8) ? g->speed - 3 : 5;
+			g->speed = (g->speed > 8) ? g->speed - 2 : 5;
 			break;
 		case SPEED_UP:
-			g->speed = (g->speed <= 15) ? g->speed + 3 : 15;
+			g->speed = (g->speed <= 15) ? g->speed + 2 : 15;
 			break;
 		default:
 			break;
