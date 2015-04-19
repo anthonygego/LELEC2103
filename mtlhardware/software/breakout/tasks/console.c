@@ -75,7 +75,7 @@ void console_task(void* pdata)
 			alt_u8 event, touchnum;
 			alt_u16 x1,x2,y1,y2;
 
-			if(mtc_get_status(game->periph.mtc_handle, &event, &touchnum, &x1, &y1, &x2, &y2))
+			if(mtc_get_status(game->mtc_handle, &event, &touchnum, &x1, &y1, &x2, &y2))
 				if(touchnum == 2)
 					printf("x1: %3d, y1: %3d\nx2: %3d, y2: %3d\nTouch num : %d\nEvent : 0x%X\n", x1, y1, x2, y2, touchnum, event);
 				else
@@ -86,7 +86,7 @@ void console_task(void* pdata)
 		else if(!strncmp(command, "MyADXL", 6))
 		{
 			adxl345_coordinates c;
-			adxl345_read(game->periph.adxl345_handle, ADXL345_DATAX0, (alt_u8 *)  &c, 6);
+			adxl345_read(game->adxl345_handle, ADXL345_DATAX0, (alt_u8 *)  &c, 6);
 			printf("X : %d - Y: %d, Z : %d\n", c.x, c.y, c.z);
 		}
 		else

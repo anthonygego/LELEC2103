@@ -41,7 +41,7 @@ void status_task(void* pdata)
 
 		// Game state
 		mpack_write_cstr(&writer, "padsize");
-		mpack_write_i32(&writer, game->paddle->width);
+		mpack_write_i32(&writer, game->paddle.width);
 
 		// Game state
 		mpack_write_cstr(&writer, "speed");
@@ -58,9 +58,9 @@ void status_task(void* pdata)
 		mpack_writer_destroy(&writer);
 
 		alt_u8 err;
-		OSSemPend(game->periph.pic32_handle->sem, 0, &err);
-		pic32_sendrpc(game->periph.pic32_handle, buffer, count, CYCLONE_RPC_INFO);
-		OSSemPost(game->periph.pic32_handle->sem);
+		OSSemPend(game->pic32_handle->sem, 0, &err);
+		pic32_sendrpc(game->pic32_handle, buffer, count, CYCLONE_RPC_INFO);
+		OSSemPost(game->pic32_handle->sem);
 
 		OSTimeDlyHMSM(0, 0, 1, 0);
 	}

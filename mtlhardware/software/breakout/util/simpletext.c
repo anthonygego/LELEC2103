@@ -2,13 +2,9 @@
 #include <sys/alt_cache.h>
 #include "simpletext.h"
 
-__inline__ void simpletext_alpha_blending(int x, int y, unsigned char alpha, unsigned char * color, display_info * display, alt_u8 as_sprite)
+__inline__ void simpletext_alpha_blending(int x, int y, unsigned char alpha, unsigned char * color, display_info * display)
 {
-	unsigned char * background;
-	if(as_sprite)
-		background = (unsigned char *) &(display->frame_buffer[0][y][x]);
-	else
-		background = (unsigned char *) &(display->frame_buffer[!(display->displayed_frame)+1][y][x]);
+	unsigned char * background = (unsigned char *) &(display->frame_buffer[!(display->displayed_frame)+1][y][x]);
 
 	// these blended colors may need to be clipped to the maximum amounts the color depth supports
 	unsigned int blended_red = ((color[2] * alpha) + (background[2] * (255 - alpha)))/255;
@@ -20,15 +16,8 @@ __inline__ void simpletext_alpha_blending(int x, int y, unsigned char alpha, uns
 	color[0] = (blended_blue > 0xFF)? 0xFF: blended_blue;
 }
 
-__inline__ void simpletext_print_char(display_info * display, int x, int y, int color, char character, struct abc_font_struct font[], alt_u8 as_sprite)
+__inline__ void simpletext_print_char(display_info * display, int x, int y, int color, char character, struct abc_font_struct font[])
 {
-	alt_u8 space = 0;
-
-	if(character==' ') {
-		space = 1;
-		character = '-';
-	}
-
 	// Assign the pointer of the font bitmap
 	unsigned char * alpha = font[character-33].char_alpha_map;
 
@@ -37,25 +26,19 @@ __inline__ void simpletext_print_char(display_info * display, int x, int y, int 
 		for (j = 0; j < font[character-33].bounds_width; j++) {
 			unsigned int new_color = color;
 
-			if(space) {
-				// Update pixel value
-				display->frame_buffer[!(display->displayed_frame)+1][y+i][x+j] = display->frame_buffer[0][y+i][x+j];
-			}
-			else {
-				// Making alpha blending
-				simpletext_alpha_blending ((x+j), (y+i), *alpha, (unsigned char*) &new_color, display, as_sprite);
+			// Making alpha blending
+			simpletext_alpha_blending ((x+j), (y+i), *alpha, (unsigned char*) &new_color, display);
 
-				// Update pixel value
-				IOWR(display->frame_buffer[!(display->displayed_frame)+1], (y+i)*DISPLAY_MAX_WIDTH + x+j, new_color);
+			// Update pixel value
+			IOWR(display->frame_buffer[!(display->displayed_frame)+1], (y+i)*DISPLAY_MAX_WIDTH + x+j, new_color);
 
-				alpha++;
-			}
+			alpha++;
 
 		}
 	}
 }
 
-void simpletext_print(display_info * display, int x, int y, int color , font_struct font[], char string[], alt_u8 as_sprite)
+void simpletext_print(display_info * display, int x, int y, int color , font_struct font[], char string[])
 {
 	int i;
 	int original_x = x;
@@ -71,15 +54,11 @@ void simpletext_print(display_info * display, int x, int y, int color , font_str
 			// Lay down that character and increment our offsets.
 
 			if((string[i] != 32) && (string[i] != '\t')) {
-				simpletext_print_char(display, x, y, color, string[i], font, as_sprite);
+				simpletext_print_char(display, x, y, color, string[i], font);
 				x += font[string[i] - 33].bounds_width;
 			}
 			else
-			{
-				if(as_sprite)
-					simpletext_print_char(display, x, y, color, ' ', font, as_sprite);
 				x += ((string[i] == 32)+2*(string[i] == '\t'))*font[45 - 33].bounds_width;
-			}
 		}
 	}
 }

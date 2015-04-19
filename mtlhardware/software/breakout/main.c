@@ -31,16 +31,16 @@ int main(void) {
 	game_struct game;
 
 	// Initialize PIC32
-	game.periph.pic32_handle = pic32_init(PIC32_BASE, PIC32_INT1_BASE, PIC32_INT2_BASE, PIC32_INT2_IRQ_INTERRUPT_CONTROLLER_ID, PIC32_INT2_IRQ);
+	game.pic32_handle = pic32_init(PIC32_BASE, PIC32_INT1_BASE, PIC32_INT2_BASE, PIC32_INT2_IRQ_INTERRUPT_CONTROLLER_ID, PIC32_INT2_IRQ);
 
 	// Initialize MultiTouch Controller
-	game.periph.mtc_handle = mtc_init(MULTI_TOUCH_BASE, MULTI_TOUCH_IRQ_INTERRUPT_CONTROLLER_ID, MULTI_TOUCH_IRQ);
+	game.mtc_handle = mtc_init(MULTI_TOUCH_BASE, MULTI_TOUCH_IRQ_INTERRUPT_CONTROLLER_ID, MULTI_TOUCH_IRQ);
 
 	// Initialize Display
-	game.periph.display_handle = display_init(VIDEO_MIXER_BASE, FRAME_BACKGROUND_BASE, FRAME_PADDLE_BASE, FRAME_BALL_BASE, ALPHA_PADDLE_BASE, ALPHA_BALL_BASE, SGDMA_NAME);
+	game.display_handle = display_init(VIDEO_MIXER_BASE, FRAME_BACKGROUND_BASE, FRAME_PADDLE_BASE, FRAME_BALL_BASE, ALPHA_PADDLE_BASE, ALPHA_BALL_BASE, SGDMA_NAME);
 
 	// Initialize Accelerometer
-	game.periph.adxl345_handle = adxl345_init(ADXL345_BASE);
+	game.adxl345_handle = adxl345_init(ADXL345_BASE);
 
 	breakout_init_textures(&game);
 	game.state = NOGAME;

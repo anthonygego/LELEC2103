@@ -45,43 +45,38 @@ typedef struct {
 } vector;
 
 typedef struct {
-	sprite * s;
-	vector   v;
+	sprite s;
+	vector v;
 } ball;
 
 typedef struct {
-	sprite * s;
-	alt_u8   value;
-	alt_u8   enabled;
+	sprite s;
+	alt_u8 value;
+	alt_u8 enabled;
 } brick;
 
 typedef struct {
-	pic32_info     * pic32_handle;
-	mtc_info       * mtc_handle;
-	display_info   * display_handle;
-	adxl345_info   * adxl345_handle;
-} peripherals;
-
-typedef struct {
-	peripherals periph;
-	game_state  state;
-	sprite    * paddle;
-	ball        ball;
-	brick       bricks[168];
-	sprite    * walls[3];
-	alt_8       controller;
-	alt_8       speed;
-	alt_8       lives;
-	alt_8       rbricks;
-	alt_32      score;
-	queue     * events_queue;
+	pic32_info    * pic32_handle;
+	mtc_info      * mtc_handle;
+	display_info  * display_handle;
+	adxl345_info  * adxl345_handle;
+	game_state      state;
+	sprite          paddle;
+	ball            ball;
+	brick           bricks[168];
+	sprite          walls[3];
+	alt_8           controller;
+	alt_8           speed;
+	alt_8           lives;
+	alt_8           rbricks;
+	alt_32          score;
+	queue         * events_queue;
 } game_struct;
-
 
 void   breakout_init(game_struct * g, char * level_filename, alt_8 controller);
 void   breakout_init_textures(game_struct * game);
-void   breakout_ball_paddle(ball * ball, sprite * paddle);
-alt_u8 breakout_ball_collision(ball *ball, sprite *s, alt_16 * new_ball_x, alt_16 * new_ball_y);
+void   breakout_ball_paddle(ball * ball, sprite paddle);
+alt_u8 breakout_ball_collision(ball ball, sprite s, alt_16 * new_ball_x, alt_16 * new_ball_y);
 void   breakout_event_pop(game_struct * g);
 
 #endif /* BREAKOUT_H_ */
