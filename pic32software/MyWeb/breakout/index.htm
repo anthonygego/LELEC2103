@@ -16,7 +16,7 @@
             cache: false,
             timeout: 5000,
             success : function(data) {
-                $('h4#game_status').text('Status : '+game_state[data.state]);  
+                $('h3#game_status').text('Status : '+game_state[data.state]);  
                 if(data.state != 3) {
                     if(!loaded_once)
                     {
@@ -66,7 +66,7 @@
             </ul>
             <div class="tab-content">
                 <div role="tabpanel" class="tab-pane active" id="newgame">
-                    <h4 style="margin-top:20px;">Start a new game</h4>
+                    <h3 style="margin-top:20px;">Start a new game</h3>
                     <form class="form-horizontal" style="margin:15px;" method="post">
                         <div class="col-xs-9 col-md-8">
                             <div class="form-group">
@@ -96,28 +96,28 @@
                     </form>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="curgame">  
-                    <h4 id="game_status" style="margin-top:20px;">Status : Not playing</h4>
+                    <h3 id="game_status" style="margin-top:20px;">Status : Not playing</h3>
                     <div id="game_status_list">
                         <div class="row">
                             <div class="col-xs-6 col-md-2">
-                                <span class="glyphicon glyphicon-heart"></span>
-                                <span style="padding-left:5px;">Lives : </span>
+                                <span style="font-size:16pt;" class="glyphicon glyphicon-heart"></span>
+                                <span style="font-size:16pt;" style="padding-left:5px;">Lives : </span>
                             </div>
                             <div class="col-xs-3 col-md-2">
-                                <span id="lives">42</span>
+                                <span style="font-size:16pt;" id="lives">42</span>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-xs-6 col-md-2">
-                                <span class="glyphicon glyphicon-star"></span>
-                                <span style="padding-left:5px;">Score : </span>
+                                <span style="font-size:16pt;" class="glyphicon glyphicon-star"></span>
+                                <span style="font-size:16pt;" style="padding-left:5px;">Score : </span>
                             </div>
                             <div class="col-xs-3 col-md-2">
-                                <span id="score">42</span>
+                                <span style="font-size:16pt;" id="score">42</span>
                             </div>
                         </div>
                     </div>
-                    <h4 id="game_status_list2" style="margin-top:20px;">Parameters</h4>
+                    <h3 id="game_status_list2" style="margin-top:20px;">Parameters</h3>
                     <div id="game_status_list2">
                         <div class="row">
                             <div class="col-xs-6 col-md-2">
