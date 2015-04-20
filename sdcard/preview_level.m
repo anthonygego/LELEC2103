@@ -18,18 +18,18 @@ fileID = fopen(sprintf('level%02d.txt', level),'r');
 
 formatSpec = '%c ';
 sizeb = [14 12];
-bricks = fscanf(fileID,formatSpec,sizeb);
+bricks = fscanf(fileID,formatSpec,sizeb)';
 fclose(fileID);
 
 for l=1:12
     for m=1:14
-			bvalue = bricks(m,l)- '0';
+			bvalue = bricks(l,m)- '0';
             if (bvalue > 0 && bvalue < 5)
                 brick = imread(sprintf('img/brick%d.jpg', bvalue));
 
                 for i=1:20
                     for j=1:50
-                        img(45+(m-2)*20+m+i,45+l*50+l+j,:) = brick(i,j,:);
+                        img(45+(l-1)*20+l+i,45+(m-1)*50+m+j,:) = brick(i,j,:);
                     end
                 end
             end
