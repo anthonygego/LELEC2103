@@ -5,43 +5,6 @@
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <script src="js/jquery-1.11.1.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
-    <script type="text/javascript">
-    var game_state = ["Paused","Playing - Launch the ball !","Playing","Not playing","You lost !","You won !"];
-    var loaded_once = false;
-    
-    function statusLoop() {
-        $.ajax({
-            url : 'game.json',
-            dataType: 'json',
-            cache: false,
-            timeout: 5000,
-            success : function(data) {
-                $('h3#game_status').text('Status : '+game_state[data.state]);  
-                if(data.state != 3) {
-                    if(!loaded_once)
-                    {
-                        $('li#lcurgame').show();
-                        $('li#lnewgame').removeClass("active");
-                        $('div#newgame').removeClass("active");
-                        $('li#lcurgame').addClass("active");
-                        $('div#curgame').addClass("active");
-                        loaded_once = true;
-                    }
-                    $.each(data, function(key, val) { $('span#'+key).text(val); });
-                }
-                else
-                {
-                    $('li#lcurgame').hide();
-                    $('li#lnewgame').addClass("active");
-                    $('div#newgame').addClass("active");
-                    $('li#lcurgame').removeClass("active");
-                    $('div#curgame').removeClass("active");
-                }
-            }
-        });
-    }
-    setInterval(statusLoop, 1000);
-    </script>
 </head>
 <body>
     <header>
@@ -60,13 +23,16 @@
                 <li id="lnewgame" role="presentation" class="active">
                     <a href="#newgame" aria-controls="newgame" role="tab" data-toggle="tab">New game</a>
                 </li>
+                <li id="lhowtoplay" role="presentation">
+                    <a href="#howtoplay" aria-controls="howtoplay" role="tab" data-toggle="tab">How to play ?</a>
+                </li>
                 <li id="lcurgame" role="presentation" style="display:none;">
                     <a href="#curgame" aria-controls="curgame" role="tab" data-toggle="tab">Current game</a>
                 </li>
             </ul>
             <div class="tab-content">
                 <div role="tabpanel" class="tab-pane active" id="newgame">
-                    <h3 style="margin-top:20px;">Start a new game</h3>
+                    <h3 style="margin-top:20px; margin-bottom:20px;">Start a new game</h3>
                     <form class="form-horizontal" style="margin:15px;" method="post">
                         <div class="col-xs-9 col-md-8">
                             <div class="form-group">
@@ -74,6 +40,15 @@
                                 <select class="form-control" name="level" id="level">
                                     <option value="1" selected>Level 1</option>
                                     <option value="2">Level 2</option>
+                                    <option value="3">Level 3</option>
+                                    <option value="4">Level 4</option>
+                                    <option value="5">Level 5</option>
+                                    <option value="6">Level 6</option>
+                                    <option value="7">Level 7</option>
+                                    <option value="8">Level 8</option>
+                                    <option value="9">Level 9</option>
+                                    <option value="10">Level 10</option>
+                                    <option value="42">Level 42</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -84,7 +59,7 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <button type="submit" class="btn btn-default">Launch game</button>
+                                <button id="submit" type="submit" class="btn btn-default">Start game</button>
                             </div>
                         </div>
                         <div class="col-xs-9 col-md-offset-1 col-md-3">
@@ -95,8 +70,35 @@
                         </div>
                     </form>
                 </div>
+                <div role="tabpanel" class="tab-pane" id="howtoplay">
+                    <h3 style="margin-top:20px; margin-bottom:20px;">How to play ?</h3>
+                    <p class="lead">Starting a new game</p>
+                    <p>
+                        <ul>
+                            <li>
+                                To start a new game, go to the <em>New Game</em> tab.
+                            </li>
+                            <li> 
+                                Select the level you want to play as well as the peripheral you want 
+                                to use to control the paddle. This can be either the accelerometer, in 
+                                which case you'll have to play by handing the small card,
+                                or with the touch controller integrated in the LCD.
+                            </li>
+                        </ul>
+                    </p>
+                    <p class="lead">Launching the ball</p>
+                    <p>
+                        When you start a new game, or when you loose one life, the ball need to be launched again.
+                        This is done by double-tapping the screen.
+                    </p>
+                    <p class="lead">Pausing the game</p>
+                    <p>
+                        You can pause the game by double-tapping the screen. It can then be resumed by redoing 
+                        the same action.
+                    </p>
+                </div>
                 <div role="tabpanel" class="tab-pane" id="curgame">  
-                    <h3 id="game_status" style="margin-top:20px;">Status : Not playing</h3>
+                    <h3 id="game_status" style="margin-top:20px; margin-bottom:20px;">Status : Not playing</h3>
                     <div id="game_status_list">
                         <div class="row">
                             <div class="col-xs-6 col-md-2">
@@ -160,11 +162,71 @@
         </div>
     </footer>
     <script type="text/javascript">
+    var game_state = ["Paused","Playing - Launch the ball !","Playing","Not playing","You lost !","You won !"];
+    var loaded_once = false;
+    
+    function statusLoop() {
+        $.ajax({
+            url : 'game.json',
+            dataType: 'json',
+            cache: false,
+            timeout: 5000,
+            success : function(data) {
+                $('h3#game_status').text('Status : '+game_state[data.state]);  
+                if(data.state != 3) {
+                    if(!loaded_once)
+                    {
+                        $('li#lcurgame').show();
+                        $('li#lnewgame').removeClass("active");
+                        $('div#newgame').removeClass("active");
+                        $('li#lcurgame').addClass("active");
+                        $('div#curgame').addClass("active");
+                        loaded_once = true;
+                    }
+                    $.each(data, function(key, val) { $('span#'+key).text(val); });
+                }
+                else
+                {
+                    $('li#lcurgame').hide();
+                    $('li#lnewgame').addClass("active");
+                    $('div#newgame').addClass("active");
+                    $('li#lcurgame').removeClass("active");
+                    $('div#curgame').removeClass("active");
+                }
+            }
+        });
+    }
+    
+    setInterval(statusLoop, 1000);
+    
     $("#level").change(function() {
         if($("#level").val() < 10)
             $('#imlevel').attr("src","img/level0"+$("#level").val()+".jpg");
         else
             $('#imlevel').attr("src","img/level"+$("#level").val()+".jpg");
+    });
+    
+    $("form").on('submit', function(e) {
+        e.preventDefault();
+
+        $.ajax({
+            url: 'index.htm',
+            type: 'POST',
+            dataType: 'html',
+            timeout: 5000,
+            data: $("form").serialize(),
+            beforeSend: function() {
+                $("#submit").html('Starting game...');
+            },
+            success: function(data) {
+                alert('Success!');
+                $("#submit").html('Start game');
+            },
+            error: function(e) {
+                alert('Failed!');
+                $("#submit").html('Start game');
+            }
+        });
     });
     </script>
 </body>
