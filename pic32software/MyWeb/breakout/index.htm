@@ -219,8 +219,8 @@
                 $("#submit").html('Starting game...');
             },
             success: function(data) {
-                alert('Success!');
                 $("#submit").html('Start game');
+                loaded_once = false;
             },
             error: function(e) {
                 alert('Failed!');
