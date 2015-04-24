@@ -40,8 +40,8 @@ typedef enum {
 } game_state;
 
 typedef struct {
-	float x;
-	float y;
+	double x;
+	double y;
 } vector;
 
 typedef struct {
