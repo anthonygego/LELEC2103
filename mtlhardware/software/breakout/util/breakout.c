@@ -75,16 +75,22 @@ void breakout_ball_paddle(ball * ball, sprite paddle)
 	double paddle_center_x = paddle.x + paddle.width/2;
 	double dist = ball_center_x - paddle_center_x;
 
-	double speedx = ball->v.x;
-	double speedy = ball->v.y;
+	double ospeedx = ball->v.x, speedx = ball->v.x;
+	double ospeedy = ball->v.y , speedy = ball->v.y;
 	double speed = sqrt(speedx*speedx + speedy*speedy);
 
 	speedx = speed * 0.9 * dist / (paddle.width/2);
 	speedy = sqrt(speed*speed - speedx*speedx) * (speedy > 0? -1 : 1);
 
 	speed = sqrt(speedx*speedx + speedy*speedy);
+
 	ball->v.x = speedx /speed;
 	ball->v.y = speedy/speed;
+
+	if(isnan(ball->v.x))
+		ball->v.x = -ospeedx;
+	if(isnan(ball->v.y))
+		ball->v.y = ospeedy;
 }
 
 void breakout_init(game_struct * g, char * level, alt_8 controller)
